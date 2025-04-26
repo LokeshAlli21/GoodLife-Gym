@@ -29,7 +29,7 @@ function Home() {
   });
 
   return (
-    <div className="w-full py-8 bg-gradient-to-br from-white to-gray-100">
+    <div className="w-full py-12 bg-white">
       <Container>
         {/* Search Bar */}
         <div className="mb-8 w-full flex justify-center">
@@ -37,11 +37,11 @@ function Home() {
             <input
               type="text"
               placeholder="Search by name, email, or phone..."
-              className="w-full p-4 pl-10 pr-4 border-2 border-yellow-400 rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-lg placeholder-gray-500 transition-all duration-300 ease-in-out"
+              className="w-full p-4 pl-12 pr-4 border-2 border-yellow-500 rounded-lg shadow-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-lg placeholder-gray-500 transition-all duration-300 ease-in-out"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <div className="absolute top-1/2 left-3 transform -translate-y-1/2 text-yellow-400">
+            <div className="absolute top-1/2 left-3 transform -translate-y-1/2 text-yellow-500">
               <FaSearch size={20} />
             </div>
           </div>
@@ -53,7 +53,7 @@ function Home() {
         ) : (
           <div className="flex flex-wrap justify-center gap-4">
             {filteredUsers.map((user) => (
-              <div key={user.id} className="p-2 w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
+              <div key={user.id} className="p-2 w-full sm:w-2/3 md:w-2/5 lg:w-1/4">
                 <PostCard {...user} />
               </div>
             ))}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { FaPhoneAlt, FaEnvelope, FaWeight, FaRulerVertical, FaUserAlt } from 'react-icons/fa';
 
 function PostCard({
   id,
@@ -18,38 +19,51 @@ function PostCard({
 
   return (
     <Link to={`/user/${id}`} className="block">
-      <div className="w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
-        {/* Profile Image & Name Section */}
-        <div className="flex items-center gap-6 p-6 bg-yellow-500">
+      <div className="w-full bg-white border border-gray-200 rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+        
+        {/* Top Section - Profile Image and Name */}
+        <div className="flex flex-col items-center justify-center bg-yellow-400 py-6">
           {photo_url ? (
             <img
               src={photo_url}
               alt={fullName}
-              className="h-20 w-20 rounded-full object-cover border-4 border-orange-500 shadow-lg"
+              className="h-28 w-28 rounded-full object-cover border-4 border-white shadow-md"
             />
           ) : (
-            <div className="h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center text-3xl font-bold text-orange-500 border-4 border-orange-500">
+            <div className="h-28 w-28 rounded-full bg-white flex items-center justify-center text-4xl font-bold text-yellow-500 border-4 border-white">
               {initials}
             </div>
           )}
-          <div className="flex flex-col justify-center">
-            <h2 className="text-2xl font-semibold text-gray-900 hover:text-orange-500 transition-all">
-              {fullName}
-            </h2>
-            <p className="text-sm text-gray-700">{email}</p>
-            <p className="text-sm text-gray-700">{phone}</p>
+          <h2 className="mt-4 text-2xl font-bold text-gray-900">{fullName}</h2>
+          <p className="text-gray-700 text-sm flex items-center gap-2 mt-1">
+            <FaEnvelope className="text-gray-600" /> {email}
+          </p>
+          <p className="text-gray-700 text-sm flex items-center gap-2 mt-1">
+            <FaPhoneAlt className="text-gray-600" /> {phone}
+          </p>
+        </div>
+
+        {/* Divider */}
+        <div className="h-1 bg-orange-400"></div>
+
+        {/* Details Section - Height and Weight */}
+        <div className="flex flex-col gap-4 p-6 bg-gray-50">
+          <div className="flex items-center gap-4">
+            <FaRulerVertical className="text-orange-500 text-2xl" />
+            <div>
+              <p className="text-gray-600 text-sm font-semibold">Height</p>
+              <p className="text-gray-900 font-bold text-lg">{height_feet}'{height_inches}"</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <FaWeight className="text-orange-500 text-2xl" />
+            <div>
+              <p className="text-gray-600 text-sm font-semibold">Weight</p>
+              <p className="text-gray-900 font-bold text-lg">{weight_kg} kg</p>
+            </div>
           </div>
         </div>
 
-        {/* Additional Info Section (Height & Weight) */}
-        <div className="bg-black px-6 py-4 text-sm text-white flex justify-between items-center border-t border-gray-300">
-          <span className="flex items-center text-yellow-500">
-            <strong className="font-medium">Height:</strong> {height_feet}'{height_inches}"
-          </span>
-          <span className="flex items-center text-yellow-500">
-            <strong className="font-medium">Weight:</strong> {weight_kg} kg
-          </span>
-        </div>
       </div>
     </Link>
   );
