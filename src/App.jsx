@@ -40,11 +40,10 @@ function App() {
     './1.jpg',
     './2.jpg',
     './3.jpg',
-    './4.jpg',
     './5.jpg',
     './6.jpg',
     './7.jpg',
-    'https://wallpapercat.com/w/full/1/8/9/1147103-1920x1080-desktop-full-hd-bodybuilding-background.jpg',
+    'https://wallsdesk.com/wp-content/uploads/2016/10/Gym-HD-Background-.jpg',
     'https://wallpapercat.com/w/full/9/8/7/1147080-1920x1208-desktop-hd-bodybuilding-wallpaper.jpg',
   ];
 

@@ -6,7 +6,7 @@ function Container({children,
   noBackground = false
 }) {
   return (
-    <div className={`w-full max-w-12xl mx-auto px-4 ${noBackground? 'bg-none' : ' bg-white'} rounded-xl ${className} ${noPaddingY? 'py-0': 'py-4'}`}>
+    <div className={`w-full max-w-12xl mx-auto px-4 ${noBackground? 'bg-none' : ' bg-none'} rounded-xl ${className} ${noPaddingY? 'py-0': 'py-4'}`}>
       {children}
     </div>
   )

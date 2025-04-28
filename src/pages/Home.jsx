@@ -1,64 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import { PostCard, Container } from '../component/index';
-import userService from '../supabase/conf';
-import { FaSearch } from 'react-icons/fa'; // React Icon for search
+import React from 'react';
+import { Container } from '../component/index';
 
 function Home() {
-  const [users, setUsers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-
-  useEffect(() => {
-    userService.getUsers().then((data) => {
-      if (data && data.length > 0) {
-        console.log(data);
-        setUsers(data);
-      }
-    }).catch((err) => {
-      console.error("Error fetching users:", err);
-    });
-  }, []);
-
-  // Filter users based on searchTerm
-  const filteredUsers = users.filter((user) => {
-    const fullName = `${user.first_name} ${user.middle_name || ''} ${user.last_name}`.toLowerCase();
-    return (
-      fullName.includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.phone.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
-
   return (
-    <div className="w-full py-0 ">
+    <div className="w-full">
       <Container noBackground>
-        {/* Search Bar */}
-        <div className="mb-8 w-full flex justify-center">
-          <div className="relative w-full md:w-1/2">
-            <input
-              type="text"
-              placeholder="Search by name, email, or phone..."
-              className="w-full p-4 pl-12 pr-4 border-2 border-yellow-500 rounded-lg shadow-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-lg placeholder-gray-500 transition-all duration-300 ease-in-out"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <div className="absolute top-1/2 left-3 transform -translate-y-1/2 text-yellow-500">
-              <FaSearch size={20} />
-            </div>
-          </div>
-        </div>
+        {/* Hero Section */}
+        <div className="w-full min-h-[90vh] flex flex-col items-center justify-center relative px-4 text-center">
+          
+          {/* Title */}
+          <h1 className="text-white text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-wide leading-tight drop-shadow-lg animate-fadeInUp">
+            Achieve Your <span className="text-yellow-400">Best Shape</span> <br className="hidden md:block" /> with <span className="text-yellow-400">GoodLife Gym</span>
+          </h1>
 
-        {/* Display filtered users */}
-        {filteredUsers.length === 0 ? (
-          <div className="text-center text-gray-600 text-lg">No users found.</div>
-        ) : (
-          <div className="flex flex-wrap justify-center gap-4">
-            {filteredUsers.map((user) => (
-              <div key={user.id} className="p-2 w-full sm:w-2/3 md:w-2/5 lg:w-1/4">
-                <PostCard {...user} />
-              </div>
-            ))}
-          </div>
-        )}
+          {/* Subtitle */}
+          <p className="mt-6 text-lg md:text-2xl text-gray-300 max-w-2xl animate-fadeInUp delay-150">
+            Unleash your potential with world-class fitness training, expert coaching, and a community that pushes you further.
+          </p>
+
+          {/* Call to Action Button */}
+          {/* <div className="mt-10 animate-fadeInUp delay-300">
+            <button className="px-8 py-4 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold rounded-full shadow-md transition duration-300 text-lg">
+              Join Now
+            </button>
+          </div> */}
+
+        </div>
       </Container>
     </div>
   );
