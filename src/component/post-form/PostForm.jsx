@@ -72,7 +72,7 @@ function PostForm() {
       <p>Submitting...</p>
     </div>
   ) : (
-    <form onSubmit={handleSubmit(submit)} className="flex flex-wrap bg-white p-6 rounded-lg m shadow-md">
+    <form onSubmit={handleSubmit(submit)} className="flex flex-wrap bg-white p-6 rounded-lg shadow-md">
         {photoPreview && (
           <div className="mt-4 w-full pb-4">
             {/* <p className="text-gray-700 font-medium">Photo Preview</p> */}
