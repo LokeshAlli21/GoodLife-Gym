@@ -3,7 +3,7 @@ CREATE TABLE users (
     first_name VARCHAR(50) NOT NULL,
     middle_name VARCHAR(50),
     last_name VARCHAR(50) NOT NULL,
-    email VARCHAR(150) UNIQUE NOT NULL,
+    email VARCHAR(150) ,
     phone VARCHAR(15),
     height_feet INTEGER,
     height_inches INTEGER,

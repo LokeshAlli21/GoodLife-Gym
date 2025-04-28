@@ -4,6 +4,7 @@ import { login, logout} from './store/authSlice'
 import {Header, Footer} from './component/index'
 import { Outlet } from 'react-router-dom'
 import { getCurrentUser } from './supabase/auth'
+import { ToastContainer } from 'react-toastify';
 
 function App() {
 
@@ -67,6 +68,7 @@ function App() {
 
       <div className="relative w-full flex flex-col min-h-screen">
         <Header />
+        <ToastContainer />
         <main className="flex-grow p-4 flex-1">
           <Outlet />
         </main>
