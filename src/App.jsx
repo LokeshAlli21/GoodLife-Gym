@@ -36,15 +36,15 @@ function App() {
 
   const images = [
     'https://images.unsplash.com/photo-1570829460005-c840387bb1ca?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGd5bSUyMGJhY2tncm91bmR8ZW58MHx8MHx8fDA%3D',
-    'https://png.pngtree.com/thumb_back/fh260/background/20240329/pngtree-rows-of-dumbbells-in-the-gym-image_15662386.jpg',
-    './1.jpg',
-    './2.jpg',
-    './3.jpg',
-    './5.jpg',
-    './6.jpg',
-    './7.jpg',
-    'https://wallsdesk.com/wp-content/uploads/2016/10/Gym-HD-Background-.jpg',
-    'https://wallpapercat.com/w/full/9/8/7/1147080-1920x1208-desktop-hd-bodybuilding-wallpaper.jpg',
+    // 'https://png.pngtree.com/thumb_back/fh260/background/20240329/pngtree-rows-of-dumbbells-in-the-gym-image_15662386.jpg',
+    // './1.jpg',
+    // './2.jpg',
+    // './3.jpg',
+    // './5.jpg',
+    // './6.jpg',
+    // './7.jpg',
+    // 'https://wallsdesk.com/wp-content/uploads/2016/10/Gym-HD-Background-.jpg',
+    // 'https://wallpapercat.com/w/full/9/8/7/1147080-1920x1208-desktop-hd-bodybuilding-wallpaper.jpg',
   ];
 
   const [currentImage, setCurrentImage] = useState(0);
@@ -59,7 +59,7 @@ function App() {
 
   return !loading ? (
 <div
-      className="min-h-screen relative bg-cover bg-center relative transition-all bg-fixed duration-1000 ease-in-out"
+      className="min-h-screen relative bg-cover bg-center transition-all bg-fixed duration-1000 ease-in-out"
       style={{ backgroundImage: `url(${images[currentImage]})` }}
     >
   {/* Black overlay */}

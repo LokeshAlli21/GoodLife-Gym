@@ -10,7 +10,7 @@ function Footer() {
           {/* Logo and Copyright */}
           <div className="w-full md:w-1/2 lg:w-5/12 p-6 flex flex-col justify-between">
             <div className="mb-6">
-              <Logo width="120px" logoPath={'https://img.freepik.com/free-vector/bird-colorful-logo-gradient-vector_343694-1365.jpg'} />
+              <Logo width="120px" logoPath={'/logo.jpg'} />
             </div>
             <p className="text-sm text-gray-400">
               &copy; 2024 Your Company. All rights reserved.

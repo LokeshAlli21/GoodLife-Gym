@@ -59,19 +59,21 @@ function AllPosts() {
       <Container noBackground>
         {/* Search Bar */}
         <div className="mb-8 w-full flex justify-center">
-          <div className="relative w-full md:w-1/2">
-            <input
-              type="text"
-              placeholder="Search by name, email, or phone..."
-              className="w-full p-4 pl-12 pr-4 border-2 border-yellow-500 rounded-lg shadow-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-lg placeholder-gray-500 transition-all duration-300 ease-in-out"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <div className="absolute top-1/2 left-3 transform -translate-y-1/2 text-yellow-500">
-              <FaSearch size={20} />
-            </div>
-          </div>
-        </div>
+  <div className="relative w-full md:w-1/2">
+    <input
+      type="text"
+      placeholder="Search by name, email, or phone..."
+      className="w-full p-4 pl-12 pr-4 border-2 border-yellow-500 rounded-lg shadow-xl 
+      focus:outline-none focus:ring-2 focus:ring-orange-500 text-lg placeholder-yellow-400 text-shadow-gray-500 text-orange-300 font-bold transition-all duration-300 ease-in-out"
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+    />
+    <div className="absolute top-1/2 left-3 transform -translate-y-1/2 text-yellow-500">
+      <FaSearch size={20} />
+    </div>
+  </div>
+</div>
+
 
         {/* Display filtered users */}
         {filteredUsers.length === 0 ? (
