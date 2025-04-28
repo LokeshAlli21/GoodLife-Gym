@@ -10,7 +10,7 @@ function Home() {
           
           {/* Title */}
           <h1 className="text-white  mt-[-100px] text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-wide leading-tight drop-shadow-lg animate-fadeInUp">
-            Achieve Your <span className="text-yellow-400">Best Shape</span> <br className="hidden md:block" /> with <span className="text-yellow-400">GoodLife Gym</span>
+            Achieve Your <span className="text-yellow-400">Best Shape</span> <br className="hidden md:block" /> with <span className="text-yellow-400 font-bold"><b>GoodLife Gym</b></span>
           </h1>
 
           {/* Subtitle */}
