@@ -37,11 +37,15 @@ function App() {
   const images = [
     'https://images.unsplash.com/photo-1570829460005-c840387bb1ca?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGd5bSUyMGJhY2tncm91bmR8ZW58MHx8MHx8fDA%3D',
     'https://png.pngtree.com/thumb_back/fh260/background/20240329/pngtree-rows-of-dumbbells-in-the-gym-image_15662386.jpg',
-    'https://w0.peakpx.com/wallpaper/315/293/HD-wallpaper-sports-weightlifting-bodybuilder-gym-man-muscle.jpg',
-    'https://images.hdqwalls.com/wallpapers/dwayne-johnson-workout-new.jpg',
-    'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Z3ltfGVufDB8fDB8fHww',
-    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAMyeb9e_V5CVAMzS4433FsvUejaW6-0qoig&s',
-    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTssr0slhmShZ5DvrbihAar-4DNIZLHNA1nrg&s',
+    './1.jpg',
+    './2.jpg',
+    './3.jpg',
+    './4.jpg',
+    './5.jpg',
+    './6.jpg',
+    './7.jpg',
+    'https://wallpapercat.com/w/full/1/8/9/1147103-1920x1080-desktop-full-hd-bodybuilding-background.jpg',
+    'https://wallpapercat.com/w/full/9/8/7/1147080-1920x1208-desktop-hd-bodybuilding-wallpaper.jpg',
   ];
 
   const [currentImage, setCurrentImage] = useState(0);
@@ -62,9 +66,9 @@ function App() {
   {/* Black overlay */}
   <div className="absolute inset-0 bg-black opacity-50"></div>
 
-      <div className="relative w-full">
+      <div className="relative w-full flex flex-col min-h-screen">
         <Header />
-        <main className="flex-grow p-4">
+        <main className="flex-grow p-4 flex-1">
           <Outlet />
         </main>
         <Footer />
