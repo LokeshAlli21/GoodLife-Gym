@@ -29,8 +29,8 @@ function Home() {
   });
 
   return (
-    <div className="w-full py-12 bg-white">
-      <Container>
+    <div className="w-full py-0 ">
+      <Container noBackground>
         {/* Search Bar */}
         <div className="mb-8 w-full flex justify-center">
           <div className="relative w-full md:w-1/2">

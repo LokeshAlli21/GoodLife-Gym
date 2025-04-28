@@ -1,1 +1,87 @@
 @import "tailwindcss";
+/* Custom Animations */
+@keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  
+  @keyframes fadeInNav {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes slideIn {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes slideInMenu {
+    0% {
+      transform: translateY(-100%);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+  
+  /* Applying the animations */
+  .animate-fadeIn {
+    animation: fadeIn 1s ease-out;
+  }
+  
+  .animate-fadeInNav {
+    animation: fadeInNav 1s ease-out;
+  }
+  
+  .animate-slideIn {
+    animation: slideIn 1s ease-out;
+  }
+  
+  .animate-slideInMenu {
+    animation: slideInMenu 1s ease-out;
+  }
+
+
+/* In your global styles (styles.css or tailwind.css) */
+
+/* Define the keyframe animation */
+@keyframes slideBackground {
+    0% {
+      background-image: url('https://example.com/image1.jpg');
+    }
+    25% {
+      background-image: url('https://example.com/image2.jpg');
+    }
+    50% {
+      background-image: url('https://example.com/image3.jpg');
+    }
+    75% {
+      background-image: url('https://example.com/image4.jpg');
+    }
+    100% {
+      background-image: url('https://example.com/image5.jpg');
+    }
+  }
+  
+  /* Apply animation to the background */
+  .bg-slide {
+    background-size: cover;
+    background-position: center;
+    animation: slideBackground 20s infinite;
+    transition: background-image 1s ease-in-out; /* Optional for smooth transition */
+  }
+  

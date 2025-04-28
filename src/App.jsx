@@ -35,8 +35,14 @@ function App() {
   }, [])
 
   return !loading ? (
-    <div className="min-h-screen flex flex-col justify-between bg-gray-100">
-      <div className="w-full">
+<div 
+  className="min-h-screen flex flex-col justify-between bg-cover bg-center bg-fixed relative" 
+  style={{ backgroundImage: "url('https://images.unsplash.com/photo-1570829460005-c840387bb1ca?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGd5bSUyMGJhY2tncm91bmR8ZW58MHx8MHx8fDA%3D')" }}
+>
+  {/* Black overlay */}
+  <div className="absolute inset-0 bg-black opacity-50"></div>
+
+      <div className="relative w-full">
         <Header />
         <main className="flex-grow p-4">
           <Outlet />
