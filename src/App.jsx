@@ -34,11 +34,31 @@ function App() {
     .finally(() => setLoading(false))
   }, [])
 
+  const images = [
+    'https://images.unsplash.com/photo-1570829460005-c840387bb1ca?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGd5bSUyMGJhY2tncm91bmR8ZW58MHx8MHx8fDA%3D',
+    'https://png.pngtree.com/thumb_back/fh260/background/20240329/pngtree-rows-of-dumbbells-in-the-gym-image_15662386.jpg',
+    'https://w0.peakpx.com/wallpaper/315/293/HD-wallpaper-sports-weightlifting-bodybuilder-gym-man-muscle.jpg',
+    'https://images.hdqwalls.com/wallpapers/dwayne-johnson-workout-new.jpg',
+    'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Z3ltfGVufDB8fDB8fHww',
+    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAMyeb9e_V5CVAMzS4433FsvUejaW6-0qoig&s',
+    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTssr0slhmShZ5DvrbihAar-4DNIZLHNA1nrg&s',
+  ];
+
+  const [currentImage, setCurrentImage] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImage((prevIndex) => (prevIndex + 1) % images.length);
+    }, 4000); // change image every 4 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   return !loading ? (
-<div 
-  className="min-h-screen flex flex-col justify-between bg-cover bg-center bg-fixed relative" 
-  style={{ backgroundImage: "url('https://images.unsplash.com/photo-1570829460005-c840387bb1ca?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGd5bSUyMGJhY2tncm91bmR8ZW58MHx8MHx8fDA%3D')" }}
->
+<div
+      className="min-h-screen relative bg-cover bg-center relative transition-all bg-fixed duration-1000 ease-in-out"
+      style={{ backgroundImage: `url(${images[currentImage]})` }}
+    >
   {/* Black overlay */}
   <div className="absolute inset-0 bg-black opacity-50"></div>
 

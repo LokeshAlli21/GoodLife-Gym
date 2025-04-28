@@ -55,33 +55,3 @@
     animation: slideInMenu 1s ease-out;
   }
 
-
-/* In your global styles (styles.css or tailwind.css) */
-
-/* Define the keyframe animation */
-@keyframes slideBackground {
-    0% {
-      background-image: url('https://example.com/image1.jpg');
-    }
-    25% {
-      background-image: url('https://example.com/image2.jpg');
-    }
-    50% {
-      background-image: url('https://example.com/image3.jpg');
-    }
-    75% {
-      background-image: url('https://example.com/image4.jpg');
-    }
-    100% {
-      background-image: url('https://example.com/image5.jpg');
-    }
-  }
-  
-  /* Apply animation to the background */
-  .bg-slide {
-    background-size: cover;
-    background-position: center;
-    animation: slideBackground 20s infinite;
-    transition: background-image 1s ease-in-out; /* Optional for smooth transition */
-  }
-  

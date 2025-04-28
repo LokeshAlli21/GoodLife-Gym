@@ -17,8 +17,8 @@ function Header() {
     { name: 'Classes', slug: '/classes', active: authStatus },
     { name: 'Login', slug: '/login', active: !authStatus },
     { name: 'Signup', slug: '/signup', active: !authStatus },
-    { name: 'All Posts', slug: '/all-posts', active: authStatus },
-    { name: 'Add Post', slug: '/add-post', active: authStatus },
+    { name: 'All Profiles', slug: '/all-profiles', active: authStatus },
+    { name: 'Add Profile', slug: '/add-profile', active: authStatus },
   ];
 
   const toggleMenu = () => {
