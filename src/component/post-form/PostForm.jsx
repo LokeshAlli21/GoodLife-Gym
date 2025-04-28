@@ -72,16 +72,42 @@ function PostForm() {
       <p>Submitting...</p>
     </div>
   ) : (
-    <form onSubmit={handleSubmit(submit)} className="flex flex-wrap bg-white p-6 rounded-lg shadow-md">
+    <form onSubmit={handleSubmit(submit)} className="flex flex-wrap bg-white p-6 rounded-lg m shadow-md">
+        {photoPreview && (
+          <div className="mt-4 w-full pb-4">
+            {/* <p className="text-gray-700 font-medium">Photo Preview</p> */}
+            <img src={photoPreview} alt="Preview" className="w-[300px] h-[300px] mx-auto object-cover rounded-lg border-2 border-yellow-500" />
+          </div> 
+        )}
       {/* Form Fields */}
       <div className="w-full md:w-1/3 px-2 mb-4">
         <Input label="First Name" placeholder="First Name" {...register("first_name", { required: true })} />
       </div>
+      
       <div className="w-full md:w-1/3 px-2 mb-4">
         <Input label="Middle Name" placeholder="Middle Name" {...register("middle_name")} />
       </div>
       <div className="w-full md:w-1/3 px-2 mb-4">
         <Input label="Last Name" placeholder="Last Name" {...register("last_name", { required: true })} />
+      </div>
+      {/* Photo Upload */}
+<div className="w-full px-2 mb-4 md:w-1/3 px-2 mb-4">
+        <label className="block mb-1 text-gray-700 font-medium">Upload Photo</label>
+        <input
+          type="file"
+          accept="image/*"
+          {...register("photo")}
+          onChange={handlePhotoChange}
+          className="w-full p-4 bg-gray-100 rounded-lg border-2 border-yellow-500 shadow-md"
+        />
+        
+        {/* <button
+          type="button"
+          onClick={openCamera}
+          className="mt-2 bg-orange-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-orange-600 transition-all duration-300"
+        >
+          Open Camera
+        </button> */}
       </div>
       <div className="w-full md:w-1/2 px-2 mb-4">
         <Input label="Email" type="email" placeholder="Email address" {...register("email", { required: true })} />
@@ -99,30 +125,6 @@ function PostForm() {
         <Input label="Weight (kg)" type="number" step="0.01" placeholder="e.g. 70.5" {...register("weight_kg")} />
       </div>
 
-      {/* Photo Upload */}
-      <div className="w-full px-2 mb-4">
-        <label className="block mb-1 text-gray-700 font-medium">Upload Photo</label>
-        <input
-          type="file"
-          accept="image/*"
-          {...register("photo")}
-          onChange={handlePhotoChange}
-          className="w-full p-4 bg-gray-100 rounded-lg border-2 border-yellow-500 shadow-md"
-        />
-        {photoPreview && (
-          <div className="mt-4">
-            <p className="text-gray-700 font-medium">Photo Preview</p>
-            <img src={photoPreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg border-2 border-yellow-500" />
-          </div>
-        )}
-        <button
-          type="button"
-          onClick={openCamera}
-          className="mt-2 bg-orange-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-orange-600 transition-all duration-300"
-        >
-          Open Camera
-        </button>
-      </div>
 
       {/* Submit Button */}
       <div className="w-full px-2 mt-2">
