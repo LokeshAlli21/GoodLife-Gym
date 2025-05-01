@@ -71,7 +71,7 @@ export default function Post() {
             <p><span className="font-semibold text-orange-600">📱 Phone:</span> {post.phone || 'N/A'}</p>
             {/* <p><span className="font-semibold text-orange-600">🆘 Emergency Contact:</span> 9876543210</p> */}
           </div>
-          <div>
+          <div className="bg-white p-4 rounded-lg shadow-md">
             <p><span className="font-semibold text-orange-600">📏 Height:</span> {post.height_feet}' {post.height_inches}"</p>
             <p><span className="font-semibold text-orange-600">⚖️ Weight:</span> {post.weight_kg} kg</p>
             <p><span className="font-semibold text-orange-600">💪 BMI:</span> 23.4</p>
