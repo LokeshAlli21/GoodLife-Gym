@@ -194,7 +194,7 @@ const switchCamera = () => {
       {/* Camera Modal */}
       {showCamera && (
         <div className="fixed min-h-[70vh] min-w-[70vw] inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center gap-4">
+          <div className="bg-white absolute min-h-[70vh] min-w-[70vw] p-6 rounded-lg shadow-xl flex flex-col items-center gap-4">
           <video
             ref={videoRef}
             className="w-80 h-60 rounded-lg bg-black"
