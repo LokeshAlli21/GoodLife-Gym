@@ -46,7 +46,7 @@ function Header() {
         <nav className="flex items-center justify-between">
           <div className="flex items-center animate-slideIn">
             <Link to="/">
-              <Logo width="70px" logoPath={'./logo.jpg'} />
+              <Logo width="70px" logoPath={'../logo.jpg'} />
             </Link>
           </div>
           <ul className="hidden md:flex items-center space-x-6">
