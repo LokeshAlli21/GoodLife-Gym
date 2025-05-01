@@ -37,7 +37,7 @@ export default function Post() {
   };
 
   return post ? (
-    <div className="py-8 min-h-screen bg-gray-50">
+    <div className="py-8 min-h-screen ">
   <Container>
     <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
       
@@ -69,7 +69,7 @@ export default function Post() {
           <div>
             <p><span className="font-semibold text-orange-600">📧 Email:</span> {post.email || 'N/A'}</p>
             <p><span className="font-semibold text-orange-600">📱 Phone:</span> {post.phone || 'N/A'}</p>
-            <p><span className="font-semibold text-orange-600">🆘 Emergency Contact:</span> 9876543210</p>
+            {/* <p><span className="font-semibold text-orange-600">🆘 Emergency Contact:</span> 9876543210</p> */}
           </div>
           <div>
             <p><span className="font-semibold text-orange-600">📏 Height:</span> {post.height_feet}' {post.height_inches}"</p>
