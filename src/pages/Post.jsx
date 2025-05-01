@@ -61,41 +61,48 @@ export default function Post() {
         </div>
       </div>
 
-      {/* Profile Details */}
-      <div className="p-6 bg-gray-100 space-y-6">
-        
-        {/* Contact & Physical Details */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <p><span className="font-semibold text-orange-600">📧 Email:</span> {post.email || 'N/A'}</p>
-            <p><span className="font-semibold text-orange-600">📱 Phone:</span> {post.phone || 'N/A'}</p>
-            {/* <p><span className="font-semibold text-orange-600">🆘 Emergency Contact:</span> 9876543210</p> */}
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <p><span className="font-semibold text-orange-600">📏 Height:</span> {post.height_feet}' {post.height_inches}"</p>
-            <p><span className="font-semibold text-orange-600">⚖️ Weight:</span> {post.weight_kg} kg</p>
-            <p><span className="font-semibold text-orange-600">💪 BMI:</span> 23.4</p>
-          </div>
-        </div>
+      <div className="p-6 bg-gray-50 space-y-6 text-gray-800">
 
-        {/* Membership & Payment */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white p-4 rounded-lg shadow-md">
-          <div>
-            <p><span className="font-semibold text-orange-600">💳 Fees Paid:</span> ₹6000</p>
-            <p><span className="font-semibold text-orange-600">📅 Valid Till:</span> 31 Oct 2025</p>
-          </div>
-          <div>
-            <p><span className="font-semibold text-orange-600">🕓 Next Payment:</span> 01 Nov 2025</p>
-            <p><span className="font-semibold text-orange-600">📌 Status:</span> <span className="text-green-600 font-bold">Active</span></p>
-          </div>
-        </div>
+{/* Contact & Physical Details */}
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+  {/* Contact */}
+  <div className="bg-white p-5 rounded-xl shadow-md border border-gray-300 hover:bg-blue-50 transition-colors">
+    <h3 className="text-lg font-semibold text-blue-600 mb-3">Contact Info</h3>
+    <p><span className="font-medium text-gray-700">📧 Email:</span> {post.email || 'N/A'}</p>
+    <p><span className="font-medium text-gray-700">📱 Phone:</span> {post.phone || 'N/A'}</p>
+  </div>
 
-        {/* Attendance Info */}
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          <p><span className="font-semibold text-orange-600">📈 Attendance (This Month):</span> 18 days</p>
-        </div>
-        
-      </div>
+  {/* Physical Details */}
+  <div className="bg-white p-5 rounded-xl shadow-md border border-gray-300 hover:bg-green-50 transition-colors">
+    <h3 className="text-lg font-semibold text-green-600 mb-3">Physical Details</h3>
+    <p><span className="font-medium text-gray-700">📏 Height:</span> {post.height_feet}' {post.height_inches}"</p>
+    <p><span className="font-medium text-gray-700">⚖️ Weight:</span> {post.weight_kg} kg</p>
+    <p><span className="font-medium text-gray-700">💪 BMI:</span> 23.4</p>
+  </div>
+</div>
+
+{/* Membership & Payment */}
+<div className="bg-white p-5 rounded-xl shadow-md border border-gray-300 grid grid-cols-1 sm:grid-cols-2 gap-6">
+  <div className="hover:bg-orange-50 transition-colors p-5 rounded-xl">
+    <h3 className="text-lg font-semibold text-orange-600 mb-3">Membership</h3>
+    <p><span className="font-medium text-gray-700">💳 Fees Paid:</span> ₹6000</p>
+    <p><span className="font-medium text-gray-700">📅 Valid Till:</span> 31 Oct 2025</p>
+  </div>
+  <div className="hover:bg-red-50 transition-colors p-5 rounded-xl">
+    <h3 className="text-lg font-semibold text-red-600 mb-3">Payment Status</h3>
+    <p><span className="font-medium text-gray-700">🕓 Next Payment:</span> 01 Nov 2025</p>
+    <p><span className="font-medium text-gray-700">📌 Status:</span> <span className="text-green-600 font-bold">Active</span></p>
+  </div>
+</div>
+
+{/* Attendance Info */}
+<div className="bg-white p-5 rounded-xl shadow-md border border-gray-300 hover:bg-purple-50 transition-colors">
+  <h3 className="text-lg font-semibold text-purple-600 mb-3">Attendance</h3>
+  <p><span className="font-medium text-gray-700">📈 This Month:</span> 18 days</p>
+</div>
+
+</div>
+
     </div>
   </Container>
 </div>
