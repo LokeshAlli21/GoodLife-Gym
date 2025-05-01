@@ -197,7 +197,7 @@ const switchCamera = () => {
           <div className="bg-white absolute min-h-[70vh] min-w-[70vw] p-6 rounded-lg shadow-xl flex flex-col items-center gap-4">
           <video
             ref={videoRef}
-            className="w-80 h-60 rounded-lg bg-black"
+            className="w-full h-full rounded-lg bg-black"
             autoPlay
             playsInline
             muted
