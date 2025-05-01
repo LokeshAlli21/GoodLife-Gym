@@ -133,9 +133,9 @@ function PostForm() {
 
   // Switch camera
 const switchCamera = (e) => {
+  setFacingMode(prev => (prev === "user" ? "environment" : "user"));
   e.preventDefault()
   toast('swtiched camera ////')
-  setFacingMode(prev => (prev === "user" ? "environment" : "user"));
 };
 
   return (
