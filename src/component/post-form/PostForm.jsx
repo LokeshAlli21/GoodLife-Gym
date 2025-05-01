@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Input, Button } from '../index'; // Your custom components
 import userService from '../../supabase/conf'; // Adjust path as needed
