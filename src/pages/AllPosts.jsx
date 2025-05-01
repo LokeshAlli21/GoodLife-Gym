@@ -77,7 +77,7 @@ function AllPosts() {
 
         {/* Display filtered users */}
         {filteredUsers.length === 0 ? (
-          <div className="text-center text-gray-600 text-lg">No users found.</div>
+          <div className="text-center text-white text-lg">No users found.</div>
         ) : (
           <div className="flex flex-wrap justify-center gap-4">
             {filteredUsers.map((user) => (
