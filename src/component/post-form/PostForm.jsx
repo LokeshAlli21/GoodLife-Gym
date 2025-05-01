@@ -44,6 +44,19 @@ function PostForm() {
     }
   };
 
+  const dataURLtoFile = (dataurl, filename) => {
+    const arr = dataurl.split(',');
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : '';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+  };
+  
   const capturePhoto = () => {
     const canvas = document.createElement('canvas');
     canvas.width = videoRef.current.videoWidth;
@@ -51,11 +64,14 @@ function PostForm() {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
     const imageDataUrl = canvas.toDataURL('image/png');
-    setCapturedImage(imageDataUrl);
-    setPhotoPreview(imageDataUrl);
-    setValue("photo", null); // Ensure no file conflicts with captured image
+    const capturedFile = dataURLtoFile(imageDataUrl, `photo-${Date.now()}.png`);
+  
+    setCapturedImage(capturedFile);  // store actual File
+    setPhotoPreview(URL.createObjectURL(capturedFile));
+    setValue("photo", null); // remove any selected file
     closeCamera();
   };
+  
 
   const closeCamera = () => {
     if (streamRef.current) {
@@ -80,7 +96,8 @@ function PostForm() {
         height_feet: data.height_feet ? parseInt(data.height_feet, 10) : null,
         height_inches: data.height_inches ? parseInt(data.height_inches, 10) : null,
         weight_kg: data.weight_kg ? parseFloat(data.weight_kg) : null,
-        photo: capturedImage ? capturedImage : (data.photo?.[0] || null),
+        photo: capturedImage || data.photo?.[0] || null,
+
       };
 
       toast.info('Submitting...');
@@ -136,7 +153,7 @@ function PostForm() {
       </div>
 
       {/* Photo Upload */}
-      <div className="w-full md:w-1/3 px-2 mb-4">
+      <div className="w-fit  md:w-1/3 px-2 mb-4">
         <label className="block mb-1 text-gray-700 font-medium">Upload Photo</label>
         <div className="flex items-center gap-2 bg-gray-100 border-2 border-yellow-500 rounded-lg shadow-sm px-3 py-2">
           <FaUpload className="text-yellow-500 text-xl" />
@@ -160,7 +177,7 @@ function PostForm() {
 
       {/* Camera Modal */}
       {showCamera && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div className="fixed min-h-[70vh] min-w-[70vw] inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center gap-4">
             <video ref={videoRef} className="w-80 h-60 rounded-lg" autoPlay muted />
             <div className="flex gap-4">
