@@ -41,15 +41,6 @@ function PostForm() {
       console.error("Camera permission error:", err);
       return false;
     }
-    try {
-      await navigator.mediaDevices.getUserMedia({ video: true });
-      toast.success("Camera permission granted ✅");
-      return true;
-    } catch (err) {
-      toast.error("Camera permission denied ❌");
-      console.error("Camera permission error:", err);
-      return false;
-    }
   };
   
 
@@ -109,6 +100,12 @@ function PostForm() {
     setCapturedImage(imageFile); // Set as a File object
     setValue("photo", null); // Clear any file input
     setShowCamera(false)
+
+    // Stop camera using streamRef
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
   };
   
   
