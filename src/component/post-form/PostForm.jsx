@@ -29,46 +29,55 @@ function PostForm() {
     },
   });
 
-  const openCamera = async () => {
+  const requestCameraPermission = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      stream.getTracks().forEach(track => track.stop()); // immediately stop it after getting permission
+      toast.success("Camera permission granted ✅");
+      return true;
+    } catch (err) {
+      toast.error("Camera permission denied ❌");
+      console.error("Camera permission error:", err);
+      return false;
+    }
+  };
+  
+
+  const openCamera = async () => {
+    const permissionGranted = await requestCameraPermission();
+    if (!permissionGranted) return
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
       streamRef.current = stream;
       setShowCamera(true);
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-      }
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+        }
+      }, 200); // slight delay to ensure video is mounted
     } catch (error) {
       toast.error("Camera access denied ❌");
       console.error("Camera error:", error);
     }
   };
+  
 
-  const dataURLtoFile = (dataurl, filename) => {
-    const arr = dataurl.split(',');
-    const mimeMatch = arr[0].match(/:(.*?);/);
-    const mime = mimeMatch ? mimeMatch[1] : '';
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new File([u8arr], filename, { type: mime });
-  };
-  
   const capturePhoto = () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-    const imageDataUrl = canvas.toDataURL('image/png');
-    const capturedFile = dataURLtoFile(imageDataUrl, `photo-${Date.now()}.png`);
+    const video = videoRef.current;
+    if (!video) return;
   
-    setCapturedImage(capturedFile);  // store actual File
-    setPhotoPreview(URL.createObjectURL(capturedFile));
-    setValue("photo", null); // remove any selected file
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+  
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  
+    const imageDataUrl = canvas.toDataURL('image/jpeg'); // jpeg is usually lighter than png
+    setCapturedImage(imageDataUrl);
+    setPhotoPreview(imageDataUrl);
+    setValue("photo", null); // Clear file input if image is captured
     closeCamera();
   };
   
@@ -96,8 +105,7 @@ function PostForm() {
         height_feet: data.height_feet ? parseInt(data.height_feet, 10) : null,
         height_inches: data.height_inches ? parseInt(data.height_inches, 10) : null,
         weight_kg: data.weight_kg ? parseFloat(data.weight_kg) : null,
-        photo: capturedImage || data.photo?.[0] || null,
-
+        photo: capturedImage ? capturedImage : (data.photo?.[0] || null),
       };
 
       toast.info('Submitting...');
@@ -153,7 +161,7 @@ function PostForm() {
       </div>
 
       {/* Photo Upload */}
-      <div className="w-fit  md:w-1/3 px-2 mb-4">
+      <div className="w-full md:w-1/3 px-2 mb-4">
         <label className="block mb-1 text-gray-700 font-medium">Upload Photo</label>
         <div className="flex items-center gap-2 bg-gray-100 border-2 border-yellow-500 rounded-lg shadow-sm px-3 py-2">
           <FaUpload className="text-yellow-500 text-xl" />
@@ -179,7 +187,14 @@ function PostForm() {
       {showCamera && (
         <div className="fixed min-h-[70vh] min-w-[70vw] inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center gap-4">
-            <video ref={videoRef} className="w-80 h-60 rounded-lg" autoPlay muted />
+          <video
+            ref={videoRef}
+            className="w-80 h-60 rounded-lg bg-black"
+            autoPlay
+            playsInline
+            muted
+          />
+
             <div className="flex gap-4">
               <button
                 onClick={capturePhoto}
