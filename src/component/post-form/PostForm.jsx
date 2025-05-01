@@ -12,9 +12,9 @@ function PostForm() {
   const [photoPreview, setPhotoPreview] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
   const [showCamera, setShowCamera] = useState(false);
-  const [facingMode, setFacingMode] = useState("environment"); // default to rear camera
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  const [facingMode, setFacingMode] = useState("environment"); // default to rear camera
 
   const { register, handleSubmit, reset, setValue } = useForm({
     defaultValues: {
@@ -30,41 +30,38 @@ function PostForm() {
     },
   });
 
-// Request permission first before opening camera
-const requestCameraPermission = async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    stream.getTracks().forEach(track => track.stop());
-    return true;
-  } catch (error) {
-    toast.error("Camera permission denied ❌");
-    return false;
-  }
-};
+  const requestCameraPermission = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      stream.getTracks().forEach(track => track.stop()); // immediately stop it after getting permission
+      toast.success("Camera permission granted ✅");
+      return true;
+    } catch (err) {
+      toast.error("Camera permission denied ❌");
+      console.error("Camera permission error:", err);
+      return false;
+    }
+  };
   
 
   const openCamera = async () => {
     const permissionGranted = await requestCameraPermission();
     if (!permissionGranted) return
-    try {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
-  
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode }, // Use current facingMode
-      });
-  
+    try {if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
       streamRef.current = stream;
       setShowCamera(true);
-  
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-      }
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+        }
+      }, 200); // slight delay to ensure video is mounted
     } catch (error) {
-      console.error("Camera access error:", error);
-      toast.error("Failed to access camera ❌");
+      toast.error("Camera access denied ❌");
+      console.error("Camera error:", error);
     }
   };
   
@@ -85,10 +82,6 @@ const requestCameraPermission = async () => {
     setPhotoPreview(imageDataUrl);
     setValue("photo", null); // Clear file input if image is captured
     closeCamera();
-  };
-
-  const switchCamera = () => {
-    setFacingMode(prev => (prev === "user" ? "environment" : "user"));
   };
   
 
@@ -137,6 +130,11 @@ const requestCameraPermission = async () => {
       setLoading(false);
     }
   };
+
+  // Switch camera
+const switchCamera = () => {
+  setFacingMode(prev => (prev === "user" ? "environment" : "user"));
+};
 
   return (
     <form
@@ -195,34 +193,39 @@ const requestCameraPermission = async () => {
 
       {/* Camera Modal */}
       {showCamera && (
-  <div className="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center">
-    <div className="bg-white rounded-lg p-4 shadow-xl flex flex-col items-center gap-4">
-      <video ref={videoRef} className="w-80 h-60 rounded-lg" autoPlay muted />
+        <div className="fixed min-h-[70vh] min-w-[70vw] inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center gap-4">
+          <video
+            ref={videoRef}
+            className="w-80 h-60 rounded-lg bg-black"
+            autoPlay
+            playsInline
+            muted
+          />
 
-      <div className="flex gap-4">
-        <button
-          onClick={capturePhoto}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-        >
-          Capture
-        </button>
-        <button
+            <div className="flex gap-4">
+              <button
+                onClick={capturePhoto}
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              >
+                Capture
+              </button>
+              <button
           onClick={switchCamera}
           className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
         >
           Switch Camera
         </button>
-        <button
-          onClick={closeCamera}
-          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
+              <button
+                onClick={closeCamera}
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Contact Fields */}
       <div className="w-full md:w-1/2 px-2 mb-4">
