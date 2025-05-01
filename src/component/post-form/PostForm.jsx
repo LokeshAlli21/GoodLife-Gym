@@ -108,6 +108,7 @@ function PostForm() {
     const imageFile = dataURLtoFile(imageDataUrl, `captured_${Date.now()}.jpg`);
     setCapturedImage(imageFile); // Set as a File object
     setValue("photo", null); // Clear any file input
+    setShowCamera(false)
   };
   
   
@@ -159,11 +160,26 @@ function PostForm() {
   };
 
   // Switch camera
-const switchCamera = (e) => {
+const switchCamera = async (e) => {
+  setShowCamera(false);
   setFacingMode(prev => (prev === "user" ? "environment" : "user"));
   toast.success(`Switched to ${facingMode === 'user' ? 'front' : 'rear'} camera`);
   e.preventDefault()
   toast('swtiched camera ////')
+ try {
+  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
+  streamRef.current = stream;
+  setShowCamera(true);
+  setTimeout(() => {
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.play();
+    }
+  }, 200); // slight delay to ensure video is mounted
+ } catch (error) {
+  toast.error("unable to switch camera ❌");
+  console.error("Camera error:", error);
+ }
 };
 
 useEffect(() => {
