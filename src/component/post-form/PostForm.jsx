@@ -86,32 +86,30 @@ function PostForm() {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   
-    const imageDataUrl = canvas.toDataURL('image/jpeg'); // jpeg is usually lighter than png
-
-    function base64ToBlob(base64Data, contentType = 'image/jpeg') {
-      const byteCharacters = atob(base64Data.split(',')[1]);
-      const byteArrays = [];
+    const imageDataUrl = canvas.toDataURL('image/jpeg');
+    setPhotoPreview(imageDataUrl); // For showing preview
   
-      for (let i = 0; i < byteCharacters.length; i += 512) {
-        const slice = byteCharacters.slice(i, i + 512);
-        const byteNumbers = new Array(slice.length);
+    // Convert base64 to Blob and then to a File
+    function dataURLtoFile(dataUrl, fileName) {
+      const arr = dataUrl.split(',');
+      const mimeMatch = arr[0].match(/:(.*?);/);
+      const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
   
-        for (let j = 0; j < slice.length; j++) {
-          byteNumbers[j] = slice.charCodeAt(j);
-        }
-  
-        const byteArray = new Uint8Array(byteNumbers);
-        byteArrays.push(byteArray);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
       }
   
-      return new Blob(byteArrays, { type: contentType });
+      return new File([u8arr], fileName, { type: mime });
     }
-    const blob = base64ToBlob(imageDataUrl);
-    setCapturedImage(blob);
-    setPhotoPreview(blob);
-    setValue("photo", null); // Clear file input if image is captured
-    closeCamera();
+  
+    const imageFile = dataURLtoFile(imageDataUrl, `captured_${Date.now()}.jpg`);
+    setCapturedImage(imageFile); // Set as a File object
+    setValue("photo", null); // Clear any file input
   };
+  
   
 
   const closeCamera = () => {
