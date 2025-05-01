@@ -33,7 +33,16 @@ function PostForm() {
   const requestCameraPermission = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      stream.getTracks().forEach(track => track.stop()); // immediately stop it after getting permission
+      // stream.getTracks().forEach(track => track.stop()); // immediately stop it after getting permission
+      toast.success("Camera permission granted ✅");
+      return true;
+    } catch (err) {
+      toast.error("Camera permission denied ❌");
+      console.error("Camera permission error:", err);
+      return false;
+    }
+    try {
+      await navigator.mediaDevices.getUserMedia({ video: true });
       toast.success("Camera permission granted ✅");
       return true;
     } catch (err) {
@@ -134,9 +143,19 @@ function PostForm() {
   // Switch camera
 const switchCamera = (e) => {
   setFacingMode(prev => (prev === "user" ? "environment" : "user"));
+  toast.success(`Switched to ${facingMode === 'user' ? 'front' : 'rear'} camera`);
   e.preventDefault()
   toast('swtiched camera ////')
 };
+
+useEffect(() => {
+  return () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
+  };
+}, []);
+
 
   return (
     <form
