@@ -14,6 +14,8 @@ class UserService {
             const indiaTime = format(new Date(), 'yyyyMMddHHmmss', { timeZone: 'Asia/Kolkata' });
     
             // Get file extension from original photo
+            console.log(photo);
+            
             const fileExtension = photo.name.split('.').pop();
     
             // Create custom filename: firstname-lastname-timestamp.ext
