@@ -75,4 +75,8 @@ CREATE TABLE memberships_and_payments (
 
 
 
-------------------------TODO ...... auto set ----------------
+------------------------TODO .....----------------
+
+-- auto set ammounts
+-- track membership history 
+-- add transformations and goals 
