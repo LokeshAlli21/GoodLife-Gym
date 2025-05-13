@@ -1,131 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { Input, Button } from '../index'; // Your custom components
-import userService from '../../supabase/conf'; // Adjust path as needed
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { FaCamera, FaUpload } from "react-icons/fa";
+import BasicDetails from './BasicDetails';
+import HealthMetrics from './HealthMetrics';
+import MembershipAndPayments from './MembershipAndPayments';
 
 function PostForm() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [photoPreview, setPhotoPreview] = useState(null);
-  const [capturedImage, setCapturedImage] = useState(null);
-  const [showCamera, setShowCamera] = useState(false);
-  const videoRef = useRef(null);
-  const streamRef = useRef(null);
-  const [facingMode, setFacingMode] = useState("environment"); // default to rear camera
+  const [activeTab, setActiveTab] = useState('basic');
 
-  const { register, handleSubmit, reset, setValue } = useForm({
-    defaultValues: {
-      first_name: '',
-      middle_name: '',
-      last_name: '',
-      email: '',
-      phone: '',
-      height_feet: '',
-      height_inches: '',
-      weight_kg: '',
-      photo: null,
-    },
-  });
 
-  const requestCameraPermission = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      // stream.getTracks().forEach(track => track.stop()); // immediately stop it after getting permission
-      toast.success("Camera permission granted ✅");
-      return true;
-    } catch (err) {
-      toast.error("Camera permission denied ❌");
-      console.error("Camera permission error:", err);
-      return false;
-    }
-  };
-  
-
-  const openCamera = async () => {
-    const permissionGranted = await requestCameraPermission();
-    if (!permissionGranted) return
-    try {if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-    }
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
-      streamRef.current = stream;
-      setShowCamera(true);
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play();
-        }
-      }, 200); // slight delay to ensure video is mounted
-    } catch (error) {
-      toast.error("Camera access denied ❌");
-      console.error("Camera error:", error);
-    }
-  };
-  
-
-  const capturePhoto = () => {
-    const video = videoRef.current;
-    if (!video) return;
-  
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
-  
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  
-    const imageDataUrl = canvas.toDataURL('image/jpeg');
-    setPhotoPreview(imageDataUrl); // For showing preview
-  
-    // Convert base64 to Blob and then to a File
-    function dataURLtoFile(dataUrl, fileName) {
-      const arr = dataUrl.split(',');
-      const mimeMatch = arr[0].match(/:(.*?);/);
-      const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-      const bstr = atob(arr[1]);
-      let n = bstr.length;
-      const u8arr = new Uint8Array(n);
-  
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n);
-      }
-  
-      return new File([u8arr], fileName, { type: mime });
-    }
-  
-    const imageFile = dataURLtoFile(imageDataUrl, `captured_${Date.now()}.jpg`);
-    setCapturedImage(imageFile); // Set as a File object
-    setValue("photo", null); // Clear any file input
-    setShowCamera(false)
-
-    // Stop camera using streamRef
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-  };
-  
-  
-
-  const closeCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-    }
-    setShowCamera(false);
-  };
-
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setPhotoPreview(URL.createObjectURL(file));
-      setCapturedImage(null); // Clear camera image if file is selected
-    }
-  };
-
-  const submit = async (data) => {
+  const handleSubmitBasicDetails = async (data) => {
+    console.log(data);
+    return
+    
     setLoading(true);
     try {
       const fixedData = {
@@ -156,159 +44,40 @@ function PostForm() {
     }
   };
 
-  // Switch camera
-const switchCamera = async (e) => {
-  setShowCamera(false);
-  setFacingMode(prev => (prev === "user" ? "environment" : "user"));
-  toast.success(`Switched to ${facingMode === 'user' ? 'front' : 'rear'} camera`);
-  e.preventDefault()
-  toast('swtiched camera ////')
- try {
-  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
-  streamRef.current = stream;
-  setShowCamera(true);
-  setTimeout(() => {
-    if (videoRef.current) {
-      videoRef.current.srcObject = stream;
-      videoRef.current.play();
-    }
-  }, 200); // slight delay to ensure video is mounted
- } catch (error) {
-  toast.error("unable to switch camera ❌");
-  console.error("Camera error:", error);
- }
-};
-
-useEffect(() => {
-  return () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-    }
-  };
-}, []);
-
-
   return (
-    <form
-      onSubmit={handleSubmit(submit)}
-      className="flex flex-wrap bg-white p-6 rounded-lg shadow-md"
-    >
-      {loading && (
-        <div className="text-center text-gray-600 w-full">
-          <p>Submitting...</p>
-        </div>
-      )}
+    <div className="max-w-5xl mx-auto mt-8 p-3   bg-white rounded-xl shadow-lg border border-gray-200">
 
-      {photoPreview && (
-        <div className="w-full mb-4 text-center">
-          <img
-            src={photoPreview}
-            alt="Preview"
-            className="w-[300px] h-[300px] object-cover mx-auto rounded-lg border-2 border-yellow-500"
-          />
-        </div>
-      )}
-
-      {/* Name Fields */}
-      <div className="w-full md:w-1/3 px-2 mb-4">
-        <Input label="First Name" required {...register("first_name", { required: true })} />
-      </div>
-      <div className="w-full md:w-1/3 px-2 mb-4">
-        <Input label="Middle Name" {...register("middle_name")} />
-      </div>
-      <div className="w-full md:w-1/3 px-2 mb-4">
-        <Input label="Last Name" required {...register("last_name", { required: true })} />
+      {/* Tab Navigation */}
+      <div className="flex justify-center space-x-4 border-b border-gray-300 mb-6">
+        {[
+          { id: 'basic', label: 'Basic Details' },
+          { id: 'health', label: 'Health Metrics' },
+          { id: 'membership', label: 'Membership & Payments' },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-2 font-semibold rounded-t-md transition-all duration-200
+              ${
+                activeTab === tab.id
+                  ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow'
+                  : 'text-gray-600 hover:text-black'
+              }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* Photo Upload */}
-      <div className="w-full md:w-1/3 px-2 mb-4">
-        <label className="block mb-1 text-gray-700 font-medium">Upload Photo</label>
-        <div className="flex items-center gap-2 bg-gray-100 border-2 border-yellow-500 rounded-lg shadow-sm px-3 py-2">
-          <FaUpload className="text-yellow-500 text-xl" />
-          <input
-            type="file"
-            accept="image/*"
-            {...register("photo")}
-            onChange={handlePhotoChange}
-            className="flex-1 bg-gray-100 outline-none"
-          />
-        </div>
-        <button
-          type="button"
-          onClick={openCamera}
-          className="mt-3 w-full flex items-center justify-center gap-2 bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-all"
-        >
-          <FaCamera />
-          Open Camera
-        </button>
+      {/* Tab Content */}
+      <div className="bg-gray-50 p-6 rounded-xl shadow-inner">
+        {activeTab === 'basic' && (
+          <BasicDetails handleSubmitBasicDetails={handleSubmitBasicDetails} />
+        )}
+        {activeTab === 'health' && <HealthMetrics />}
+        {activeTab === 'membership' && <MembershipAndPayments />}
       </div>
-
-      {/* Camera Modal */}
-      {showCamera && (
-        <div className="fixed min-h-[70vh] min-w-[70vw] inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-          <div className="bg-white absolute min-h-[70vh] min-w-[70vw] p-6 rounded-lg shadow-xl flex flex-col items-center gap-4">
-          <video
-            ref={videoRef}
-            className="w-full h-full rounded-lg bg-black"
-            autoPlay
-            playsInline
-            muted
-          />
-
-            <div className="flex gap-4">
-              <button
-                onClick={capturePhoto}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-              >
-                Capture
-              </button>
-              <button
-          onClick={switchCamera}
-          className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
-        >
-          Switch Camera
-        </button>
-              <button
-                onClick={closeCamera}
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Contact Fields */}
-      <div className="w-full md:w-1/2 px-2 mb-4">
-        <Input label="Email" type="email" {...register("email")} />
-      </div>
-      <div className="w-full md:w-1/2 px-2 mb-4">
-        <Input label="Phone" type="tel" {...register("phone")} />
-      </div>
-
-      {/* Physical Attributes */}
-      <div className="w-full md:w-1/3 px-2 mb-4">
-        <Input label="Height (feet)" type="number" {...register("height_feet")} />
-      </div>
-      <div className="w-full md:w-1/3 px-2 mb-4">
-        <Input label="Height (inches)" type="number" {...register("height_inches")} />
-      </div>
-      <div className="w-full md:w-1/3 px-2 mb-4">
-        <Input label="Weight (kg)" type="number" step="0.01" {...register("weight_kg")} />
-      </div>
-
-      {/* Submit */}
-      <div className="w-full px-2 mt-4">
-        <Button
-          type="submit"
-          bgColor="bg-orange-500 hover:bg-orange-600"
-          className="w-full text-white py-3 font-semibold rounded-lg shadow-md transition-transform transform hover:scale-105"
-        >
-          Submit
-        </Button>
-      </div>
-    </form>
+    </div>
   );
 }
 
