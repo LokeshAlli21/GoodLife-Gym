@@ -20,7 +20,7 @@ CREATE TABLE members (
 CREATE TABLE health_metrics (
     id SERIAL PRIMARY KEY,
 
-    member_id INTEGER REFERENCES members(id) ON DELETE CASCADE,
+    member_id INTEGER UNIQUE REFERENCES members(id) ON DELETE CASCADE,
 
     -- Physical Info
     height_feet INTEGER,
@@ -37,7 +37,7 @@ CREATE TABLE memberships_and_payments (
     -- Linking to member and membership plan
     member_id INTEGER REFERENCES members(id) ON DELETE CASCADE,
     
-    membership_plan VARCHAR(50) NOT NULL UNIQUE,  -- Monthly, Quarterly, Yearly
+    membership_plan VARCHAR(50) NOT NULL,  -- Monthly, Quarterly, Yearly
     membership_duration_days INTEGER NOT NULL,         -- 30, 90, 365
     membership_price NUMERIC(10,2) NOT NULL,
 

@@ -160,17 +160,24 @@ function BasicDetails({
         };
       }, []);
 
+      const submit = (data) => {
+
+              const fixedData = {
+        ...data,
+        photo: capturedImage ? capturedImage : (data.photo?.[0] || null),
+      };
+        handleSubmitBasicDetails(fixedData)
+              setPhotoPreview(null);
+              setCapturedImage(null);
+              reset()
+      }
+
   return (
 
 <form
-  onSubmit={handleSubmit(handleSubmitBasicDetails)}
+  onSubmit={handleSubmit(submit)}
   className="flex flex-col gap-4"
 >
-  {loading && (
-    <div className="text-center text-gray-600">
-      <p>Submitting...</p>
-    </div>
-  )}
 
   {photoPreview && (
     <div className="text-center">

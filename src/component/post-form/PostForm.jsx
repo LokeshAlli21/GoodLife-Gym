@@ -4,46 +4,92 @@ import { toast } from 'react-toastify';
 import BasicDetails from './BasicDetails';
 import HealthMetrics from './HealthMetrics';
 import MembershipAndPayments from './MembershipAndPayments';
+import userService from '../../supabase/conf';
 
 function PostForm() {
   const navigate = useNavigate();
+  const [memberId, setMemberId] = useState(null)
+
   const [activeTab, setActiveTab] = useState('basic');
+    const [loading, setLoading] = useState(false);
 
 
-  const handleSubmitBasicDetails = async (data) => {
-    console.log(data);
-    return
-    
-    setLoading(true);
-    try {
-      const fixedData = {
-        ...data,
-        height_feet: data.height_feet ? parseInt(data.height_feet, 10) : null,
-        height_inches: data.height_inches ? parseInt(data.height_inches, 10) : null,
-        weight_kg: data.weight_kg ? parseFloat(data.weight_kg) : null,
-        photo: capturedImage ? capturedImage : (data.photo?.[0] || null),
-      };
+const handleSubmitBasicDetails = async (data) => {
+  console.log(data);
+  setLoading(true);
 
-      toast.info('Submitting...');
-      await userService.createUser(fixedData);
+  try {
+    toast.info('Submitting...');
+    const response = await userService.createUser(data);
 
-      reset();
-      setPhotoPreview(null);
-      setCapturedImage(null);
-      toast.success('User created successfully ✅');
-      navigate('/all-profiles');
-    } catch (error) {
-      console.error("Create user error:", error);
-      if (error.code === '23505') {
-        toast.error('This email already exists ❌');
-      } else {
-        toast.error('Failed to submit. Please try again ❌');
-      }
-    } finally {
-      setLoading(false);
+    console.log("CreateUser response:", response);
+
+    // Check if response is an array and has at least one item
+    if (Array.isArray(response) && response.length > 0) {
+      setMemberId(response[0].id);
     }
-  };
 
+    toast.success('User created successfully ✅');
+    setActiveTab('health');
+  } catch (error) {
+    console.error("Create user error:", error);
+    if (error.code === '23505') {
+      toast.error('This email already exists ❌');
+    } else {
+      toast.error('Failed to submit. Please try again ❌');
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const handleSubmitHealthMetrics = async (data) => {
+  console.log(data);
+  setLoading(true);
+  try {
+    toast.info('Submitting health metrics...');
+
+    await userService.createHealthMetrics(memberId,data); // Adjust function name if different
+
+    toast.success('Health metrics saved successfully ✅');
+    setActiveTab('membership'); // Move to next tab or section
+  } catch (error) {
+    console.error("Create health metrics error:", error);
+    toast.error('Failed to submit health metrics ❌');
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleSubmitMembershipAndPayments = async (data) => {
+  console.log(data);
+  return
+  setLoading(true);
+  try {
+    toast.info('Submitting membership and payment details...');
+
+    await userService.createMembershipAndPayments(memberId, data); // Make sure this function exists in userService
+
+    toast.success('Membership and payments saved successfully ✅');
+    setActiveTab('next-tab'); // Change this to the next relevant tab
+  } catch (error) {
+    console.error("Create membership and payments error:", error);
+    toast.error('Failed to submit membership and payments ❌');
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+if(loading){
+  return (
+     <div className="text-center text-gray-600">
+      <p>Submitting...</p>
+    </div>
+  )
+}
+  
   return (
     <div className="max-w-5xl mx-auto mt-8 p-3   bg-white rounded-xl shadow-lg border border-gray-200">
 
@@ -74,8 +120,8 @@ function PostForm() {
         {activeTab === 'basic' && (
           <BasicDetails handleSubmitBasicDetails={handleSubmitBasicDetails} />
         )}
-        {activeTab === 'health' && <HealthMetrics />}
-        {activeTab === 'membership' && <MembershipAndPayments />}
+        {activeTab === 'health' && <HealthMetrics handleSubmitHealthMetrics={handleSubmitHealthMetrics} />}
+        {activeTab === 'membership' && <MembershipAndPayments handleSubmitMembershipAndPayments={handleSubmitMembershipAndPayments} />}
       </div>
     </div>
   );
