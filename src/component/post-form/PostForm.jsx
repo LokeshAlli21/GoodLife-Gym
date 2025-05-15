@@ -91,10 +91,10 @@ if(loading){
 }
   
   return (
-    <div className="max-w-5xl mx-auto mt-8 p-3   bg-white rounded-xl shadow-lg border border-gray-200">
+    <div className="max-w-5xl mx-auto mt-0 p-0   bg-white rounded-xl shadow-lg border border-gray-200">
 
       {/* Tab Navigation */}
-      <div className="flex justify-center space-x-4 border-b border-gray-300 mb-6">
+      <div className="flex justify-center space-x-4 p-3">
         {[
           { id: 'basic', label: 'Basic Details' },
           { id: 'health', label: 'Health Metrics' },
@@ -103,7 +103,7 @@ if(loading){
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 font-semibold rounded-t-md transition-all duration-200
+            className={`px-4 py-2 font-semibold rounded-md transition-all duration-200
               ${
                 activeTab === tab.id
                   ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow'

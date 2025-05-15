@@ -57,8 +57,9 @@ function HealthMetrics({ handleSubmitHealthMetrics }) {
           type="number"
           step="0.01"
           required
+          noLabelWrap={true}
           {...register("bicps_size_inches", { required: true })}
-          className="w-full"
+          className="w-full text-nowrap"
         />
       </div>
 

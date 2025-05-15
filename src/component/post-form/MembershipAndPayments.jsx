@@ -37,8 +37,18 @@ function MembershipAndPayments({ handleSubmitMembershipAndPayments, prevData = {
   // State for selected membership plan
   const [selectedPlan, setSelectedPlan] = useState('');
 
+    // Watch inputs for auto-calculation
+  const installmentAmount = watch('installment_amount');
+  const paymentInstallment1 = watch('payment_installment_1');
+  const paymentInstallment2 = watch('payment_installment_2');
+  const paymentInstallment3 = watch('payment_installment_3');
+  const membershipPrice = watch('membership_price');
+  const membershipDuration = watch('membership_duration_days');
+  const startDate = watch('membership_start_date');
+
   // Prices and durations for different membership plans
   const plans = {
+    none:{price: '', duration: '' },
     monthly: { price: 600, duration: 30 },
     quarterly: { price: 1500, duration: 90 },
     yearly: { price: 4500, duration: 365 }
@@ -48,6 +58,11 @@ function MembershipAndPayments({ handleSubmitMembershipAndPayments, prevData = {
   useEffect(() => {
     if (selectedPlan) {
       const { price, duration } = plans[selectedPlan];
+      setValue('membership_price', price);
+      setValue('membership_duration_days', duration);
+    } 
+    else{
+      const { price, duration } = plans.none;
       setValue('membership_price', price);
       setValue('membership_duration_days', duration);
     }
@@ -60,15 +75,6 @@ function MembershipAndPayments({ handleSubmitMembershipAndPayments, prevData = {
   };
 
 
-
-  // Watch inputs for auto-calculation
-  const installmentAmount = watch('installment_amount');
-  const paymentInstallment1 = watch('payment_installment_1');
-  const paymentInstallment2 = watch('payment_installment_2');
-  const paymentInstallment3 = watch('payment_installment_3');
-  const membershipPrice = watch('membership_price');
-  const membershipDuration = watch('membership_duration_days');
-  const startDate = watch('membership_start_date');
 
   // Auto-set membership price and duration
   useEffect(() => {
@@ -91,6 +97,7 @@ function MembershipAndPayments({ handleSubmitMembershipAndPayments, prevData = {
       setValue('total_amount_paid', paid);
       setValue('total_amount_due', due >= 0 ? due : 0);
     }
+
   }, [installmentAmount, membershipPrice, setValue]);
 
   // Auto-calculate membership end and next due date
@@ -107,19 +114,64 @@ useEffect(() => {
 
     setValue('membership_end_date', formatDate(end));
     setValue('next_payment_due_date', formatDate(nextDue));
+  } else{
+    setValue('membership_end_date', '');
+    setValue('next_payment_due_date', '');
   }
 }, [startDate, membershipDuration, setValue]);
+
+// console.log(new Date().toISOString());
+
+  useEffect(() => {
+        const isMembershipActive = (dateStr) => {
+      if (!dateStr) return false; // if no date, treat as inactive
+      const endDate = new Date(dateStr);
+      const today = new Date();
+      
+
+      // Zero out the time for accurate day comparison
+      endDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+
+      return endDate >= today; // true if still active
+    };
+
+if (isMembershipActive(prevData.membership_end_date)) {
+const currentEnd = new Date(prevData.membership_end_date);
+const newEnd = new Date(currentEnd);
+const newNextDue = new Date(currentEnd);
+
+newEnd.setDate(newEnd.getDate() + Number(membershipDuration));
+
+if (!membershipDuration && prevData.next_payment_due_date) {
+  // If no membershipDuration but next_payment_due_date exists, set newNextDue to that date
+  newNextDue.setTime(new Date(prevData.next_payment_due_date).getTime());
+} else {
+  // Otherwise, extend newNextDue by membershipDuration - 1 days
+  newNextDue.setDate(newNextDue.getDate() + Number(membershipDuration) - 1);
+}
+
+  const formatDate = (date) => date.toISOString().split('T')[0];
+
+  setValue('membership_end_date', formatDate(newEnd));
+  setValue('next_payment_due_date', formatDate(newNextDue));
+}
+console.log(membershipDuration);
+
+
+  },[prevData,membershipDuration])
 
 
   return (
     <form onSubmit={handleSubmit(submit)} className="flex flex-col gap-4">
       {/* Membership Plan Selector */}
-      <div>
-        <label className="block text-sm font-medium mb-1">Membership Plan</label>
+      <div className='w-full'>
+        <label className="block mb-1 text-gray-700 font-medium" htmlFor={"plan"}>Membership Plan</label>
         <select
           {...register('membership_plan', { required: true })}
           onChange={(e) => setSelectedPlan(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+          id={"plan"}
+          className="px-4 py-3 rounded-lg bg-white text-gray-800 placeholder-gray-500 outline-none transition-all duration-200 border border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-200 w-full"
         >
           <option value="">Select Plan</option>
           <option value="monthly">Monthly - ₹600</option>
@@ -152,7 +204,7 @@ useEffect(() => {
 
       {/* Payment Information */}
       <div className="flex flex-col gap-4">
-        {prevData && <>
+        {(prevData && Object.keys(prevData).length !== 0 && prevData.constructor === Object) && <>
         <Input
           label="Installment 1"
           type="number"
@@ -205,7 +257,7 @@ useEffect(() => {
 
         {/* Last Payment Date */}
         {
-          prevData &&
+          prevData?.last_payment_date &&
                   <Input
           label="Last Payment Date"
           type="date"
@@ -229,19 +281,31 @@ useEffect(() => {
           disabled
         />
         <Input
-          label="membership_end_date"
+          label="Membership End Date"
           type="date"
           {...register('membership_end_date')}
-          className="w-full"
+          className="w-full text-red-400 font-bold"
           disabled
         />
 
-        {/* Payment Method */}
-        <Input
-          label="Payment Method"
-          {...register('payment_method')}
-          className="w-full"
-        />
+        <div className="w-full">
+          { (
+            <label className="block mb-1 text-gray-700 font-medium" htmlFor={"id"}>
+              Payment method
+            </label>
+          )}
+          <select
+            className={`px-4 py-3 rounded-lg bg-white text-gray-800 placeholder-gray-500 outline-none transition-all duration-200 border border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-200 w-full`}
+            id={"id"}
+            {...register('payment_method')}
+          >
+            <option value="">Select a method</option>
+            <option value="cash">Cash</option>
+            <option value="card">Card</option>
+            <option value="upi">UPI</option>
+            <option value="bank_transfer">Bank Transfer</option>
+          </select>
+        </div>
         
         {/* Payment Screenshot URL */}
         <Input

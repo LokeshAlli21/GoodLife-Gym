@@ -1,12 +1,12 @@
 import React, { useId } from 'react';
 
-const Input = React.forwardRef(({ label, type = 'text', className = '', ...props }, ref) => {
+const Input = React.forwardRef(({ label, type = 'text', className = '', noLabelWrap = false , ...props }, ref) => {
   const id = useId();
 
   return (
     <div className="w-full">
       {label && (
-        <label className="block mb-1 text-gray-700 font-medium" htmlFor={id}>
+        <label className={`block mb-1 text-gray-700 font-medium  ${noLabelWrap && 'text-nowrap'}`} htmlFor={id}>
           {label}
         </label>
       )}

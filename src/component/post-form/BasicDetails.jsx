@@ -293,23 +293,25 @@ function BasicDetails({
   </div>
 
   {/* Blood Group (Radio) */}
-<div>
-  <label className="block text-sm font-medium mb-1" htmlFor="blood_group">
-    Blood Group
-  </label>
-  <select
-    id="blood_group"
-    {...register("blood_group", { required: true })}
-    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-  >
-    <option value="">Select Blood Group</option>
+        <div className="w-full">
+          { (
+            <label className="block mb-1 text-gray-700 font-medium" htmlFor={"blood_group"}>
+               Blood Group
+            </label>
+          )}
+          <select
+            className={`px-4 py-3 rounded-lg bg-white text-gray-800 placeholder-gray-500 outline-none transition-all duration-200 border border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-200 w-full`}
+            id={"blood_group"}
+            {...register("blood_group", { required: false })}
+          >
+            <option value="">Select Blood Group</option>
     {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bg) => (
       <option key={bg} value={bg}>
         {bg}
       </option>
     ))}
-  </select>
-</div>
+          </select>
+        </div>
 
 
   {/* Submit Button */}
