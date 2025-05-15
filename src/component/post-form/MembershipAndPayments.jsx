@@ -36,8 +36,6 @@ function MembershipAndPayments({ handleSubmitMembershipAndPayments, prevData = {
 
   // State for selected membership plan
   const [selectedPlan, setSelectedPlan] = useState('');
-
-    // Watch inputs for auto-calculation
   const installmentAmount = watch('installment_amount');
   const paymentInstallment1 = watch('payment_installment_1');
   const paymentInstallment2 = watch('payment_installment_2');
@@ -46,46 +44,25 @@ function MembershipAndPayments({ handleSubmitMembershipAndPayments, prevData = {
   const membershipDuration = watch('membership_duration_days');
   const startDate = watch('membership_start_date');
 
-  // Prices and durations for different membership plans
   const plans = {
-    none:{price: '', duration: '' },
+    none: { price: '', duration: '' },
     monthly: { price: 600, duration: 30 },
     quarterly: { price: 1500, duration: 90 },
-    yearly: { price: 4500, duration: 365 }
+    yearly: { price: 4500, duration: 365 },
   };
 
-  // Automatically set data based on the selected plan
   useEffect(() => {
-    if (selectedPlan) {
-      const { price, duration } = plans[selectedPlan];
-      setValue('membership_price', price);
-      setValue('membership_duration_days', duration);
-    } 
-    else{
-      const { price, duration } = plans.none;
-      setValue('membership_price', price);
-      setValue('membership_duration_days', duration);
-    }
+    const { price, duration } = plans[selectedPlan] || plans.none;
+    setValue('membership_price', price);
+    setValue('membership_duration_days', duration);
   }, [selectedPlan, setValue]);
 
-  // Handle form submission
   const submit = (data) => {
     handleSubmitMembershipAndPayments(data);
-    reset(); // Clear form after submit
+    reset();
+    setSelectedPlan('')
   };
 
-
-
-  // Auto-set membership price and duration
-  useEffect(() => {
-    if (selectedPlan) {
-      const { price, duration } = plans[selectedPlan];
-      setValue('membership_price', price);
-      setValue('membership_duration_days', duration);
-    }
-  }, [selectedPlan, setValue]);
-
-  // Auto-calculate total amount paid and due
   useEffect(() => {
     if (installmentAmount && membershipPrice) {
       const p1 = Number(paymentInstallment1) || 0;
@@ -97,69 +74,54 @@ function MembershipAndPayments({ handleSubmitMembershipAndPayments, prevData = {
       setValue('total_amount_paid', paid);
       setValue('total_amount_due', due >= 0 ? due : 0);
     }
-
-  }, [installmentAmount, membershipPrice, setValue]);
-
-  // Auto-calculate membership end and next due date
-useEffect(() => {
-  if (startDate && membershipDuration) {
-    const start = new Date(startDate);
-    const end = new Date(start);
-    const nextDue = new Date(start);
-
-    end.setDate(end.getDate() + Number(membershipDuration));
-    nextDue.setDate(nextDue.getDate() + Number(membershipDuration));
-
-    const formatDate = (date) => date.toISOString().split("T")[0];
-
-    setValue('membership_end_date', formatDate(end));
-    setValue('next_payment_due_date', formatDate(nextDue));
-  } else{
-    setValue('membership_end_date', '');
-    setValue('next_payment_due_date', '');
-  }
-}, [startDate, membershipDuration, setValue]);
-
-// console.log(new Date().toISOString());
+  }, [installmentAmount, paymentInstallment1, paymentInstallment2, paymentInstallment3, membershipPrice, setValue]);
 
   useEffect(() => {
-        const isMembershipActive = (dateStr) => {
-      if (!dateStr) return false; // if no date, treat as inactive
+    if (startDate && membershipDuration) {
+      const start = new Date(startDate);
+      const end = new Date(start);
+      const nextDue = new Date(start);
+
+      end.setDate(end.getDate() + Number(membershipDuration));
+      nextDue.setDate(nextDue.getDate() + Number(membershipDuration));
+
+      const formatDate = (date) => date.toISOString().split('T')[0];
+      setValue('membership_end_date', formatDate(end));
+      setValue('next_payment_due_date', formatDate(nextDue));
+    } else {
+      setValue('membership_end_date', '');
+      setValue('next_payment_due_date', '');
+    }
+  }, [startDate, membershipDuration, setValue]);
+
+  useEffect(() => {
+    const isMembershipActive = (dateStr) => {
+      if (!dateStr) return false;
       const endDate = new Date(dateStr);
       const today = new Date();
-      
-
-      // Zero out the time for accurate day comparison
       endDate.setHours(0, 0, 0, 0);
       today.setHours(0, 0, 0, 0);
-
-      return endDate >= today; // true if still active
+      return endDate >= today;
     };
 
-if (isMembershipActive(prevData.membership_end_date)) {
-const currentEnd = new Date(prevData.membership_end_date);
-const newEnd = new Date(currentEnd);
-const newNextDue = new Date(currentEnd);
+    if (isMembershipActive(prevData.membership_end_date)) {
+      const currentEnd = new Date(prevData.membership_end_date);
+      const newEnd = new Date(currentEnd);
+      const newNextDue = new Date(currentEnd);
 
-newEnd.setDate(newEnd.getDate() + Number(membershipDuration));
+      newEnd.setDate(newEnd.getDate() + Number(membershipDuration));
 
-if (!membershipDuration && prevData.next_payment_due_date) {
-  // If no membershipDuration but next_payment_due_date exists, set newNextDue to that date
-  newNextDue.setTime(new Date(prevData.next_payment_due_date).getTime());
-} else {
-  // Otherwise, extend newNextDue by membershipDuration - 1 days
-  newNextDue.setDate(newNextDue.getDate() + Number(membershipDuration) - 1);
-}
+      if (!membershipDuration && prevData.next_payment_due_date) {
+        newNextDue.setTime(new Date(prevData.next_payment_due_date).getTime());
+      } else {
+        newNextDue.setDate(newNextDue.getDate() + Number(membershipDuration) );
+      }
 
-  const formatDate = (date) => date.toISOString().split('T')[0];
-
-  setValue('membership_end_date', formatDate(newEnd));
-  setValue('next_payment_due_date', formatDate(newNextDue));
-}
-console.log(membershipDuration);
-
-
-  },[prevData,membershipDuration])
+      const formatDate = (date) => date.toISOString().split('T')[0];
+      setValue('membership_end_date', formatDate(newEnd));
+      setValue('next_payment_due_date', formatDate(newNextDue));
+    }
+  }, [prevData, membershipDuration, setValue]);
 
 
   return (
