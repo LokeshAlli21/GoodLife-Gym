@@ -189,3 +189,458 @@ INSERT INTO membership_plans (name, duration_days, price) VALUES
 ('Monthly', 30, 600.00),
 ('Quarterly', 90, 1500.00),
 ('Annual', 365, 4500.00);
+
+------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Create revenue_tracking view for financial analysis
+CREATE VIEW revenue_tracking_view AS
+SELECT 
+    -- Time dimensions for analysis
+    EXTRACT(YEAR FROM p.payment_date) AS year,
+    EXTRACT(MONTH FROM p.payment_date) AS month,
+    TO_CHAR(p.payment_date, 'Month') AS month_name,
+    
+    -- Payment method breakdown
+    p.payment_method,
+    
+    -- Plan type breakdown
+    mp.name AS plan_type,
+    
+    -- Various revenue metrics
+    COUNT(p.id) AS number_of_payments,
+    SUM(p.payment_amount) AS total_revenue,
+    AVG(p.payment_amount) AS average_payment,
+    
+    -- New vs renewal memberships
+    COUNT(DISTINCT CASE 
+        WHEN mb.membership_start_date = p.payment_date THEN mb.id 
+        ELSE NULL
+    END) AS new_memberships,
+    
+    COUNT(DISTINCT CASE 
+        WHEN mb.membership_start_date < p.payment_date THEN mb.id 
+        ELSE NULL
+    END) AS renewal_payments
+FROM 
+    payments p
+JOIN 
+    memberships mb ON p.membership_id = mb.id
+JOIN 
+    membership_plans mp ON mb.plan_id = mp.id
+GROUP BY 
+    EXTRACT(YEAR FROM p.payment_date),
+    EXTRACT(MONTH FROM p.payment_date),
+    TO_CHAR(p.payment_date, 'Month'),
+    p.payment_method,
+    mp.name
+ORDER BY 
+    year DESC, month DESC;
+
+-- Create daily_revenue view for day-by-day analysis
+CREATE VIEW daily_revenue_view AS
+SELECT 
+    p.payment_date,
+    COUNT(p.id) AS number_of_payments,
+    SUM(p.payment_amount) AS daily_revenue,
+    COUNT(DISTINCT mb.member_id) AS unique_members_paid
+FROM 
+    payments p
+JOIN 
+    memberships mb ON p.membership_id = mb.id
+GROUP BY 
+    p.payment_date
+ORDER BY 
+    p.payment_date DESC;
+
+-- Create pending_payments view to track outstanding balances
+CREATE VIEW pending_payments_view AS
+SELECT 
+    m.id AS member_id,
+    m.first_name,
+    m.last_name,
+    m.phone,
+    m.email,
+    mb.id AS membership_id,
+    mp.name AS plan_name,
+    mp.price AS total_price,
+    COALESCE(SUM(p.payment_amount), 0) AS amount_paid,
+    (mp.price - COALESCE(SUM(p.payment_amount), 0)) AS amount_due,
+    mb.membership_start_date,
+    mb.membership_end_date,
+    -- Calculate days overdue if payment is pending
+    CASE 
+        WHEN (mp.price - COALESCE(SUM(p.payment_amount), 0)) > 0 THEN
+            EXTRACT(DAY FROM (CURRENT_DATE - COALESCE(MAX(p.payment_date), mb.membership_start_date)))::INTEGER
+        ELSE 0
+    END AS days_since_last_payment,
+    -- Flag severely overdue accounts
+    CASE 
+        WHEN (mp.price - COALESCE(SUM(p.payment_amount), 0)) > 0 AND
+             EXTRACT(DAY FROM (CURRENT_DATE - COALESCE(MAX(p.payment_date), mb.membership_start_date))) > 30
+        THEN TRUE
+        ELSE FALSE
+    END AS is_overdue
+FROM 
+    members m
+JOIN 
+    memberships mb ON m.id = mb.member_id
+JOIN 
+    membership_plans mp ON mb.plan_id = mp.id
+LEFT JOIN 
+    payments p ON mb.id = p.membership_id
+GROUP BY 
+    m.id, m.first_name, m.last_name, m.phone, m.email,
+    mb.id, mb.membership_start_date, mb.membership_end_date,
+    mp.name, mp.price
+HAVING 
+    (mp.price - COALESCE(SUM(p.payment_amount), 0)) > 0
+ORDER BY 
+    days_since_last_payment DESC;
+
+-- Create monthly_recurring_revenue view for financial forecasting
+CREATE VIEW monthly_recurring_revenue_view AS
+WITH active_memberships AS (
+    SELECT 
+        mp.id AS plan_id,
+        mp.name AS plan_name,
+        mp.price AS plan_price,
+        mp.duration_days,
+        COUNT(mb.id) AS active_memberships_count,
+        SUM(mp.price) AS total_contract_value
+    FROM 
+        memberships mb
+    JOIN 
+        membership_plans mp ON mb.plan_id = mp.id
+    WHERE 
+        mb.membership_end_date >= CURRENT_DATE
+    GROUP BY 
+        mp.id, mp.name, mp.price, mp.duration_days
+)
+SELECT 
+    plan_id,
+    plan_name,
+    active_memberships_count,
+    total_contract_value,
+    -- Calculate monthly equivalent value based on plan duration
+    ROUND(
+        (total_contract_value / (duration_days / 30.0))::numeric, 
+        2
+    ) AS monthly_recurring_revenue,
+    -- Percentage of total MRR
+    ROUND(
+        (100 * (total_contract_value / (duration_days / 30.0)) / 
+        SUM(total_contract_value / (duration_days / 30.0)) OVER ())::numeric,
+        2
+    ) AS percent_of_total_mrr
+FROM 
+    active_memberships
+ORDER BY 
+    monthly_recurring_revenue DESC;
+
+-- Function to record expense (optional, for comprehensive revenue tracking)
+CREATE TABLE expenses (
+    id SERIAL PRIMARY KEY,
+    expense_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    category VARCHAR(50) NOT NULL,
+    amount NUMERIC(10,2) NOT NULL CHECK (amount > 0),
+    description TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')
+);
+
+-- Create profit_loss_view to track net revenue
+CREATE VIEW profit_loss_view AS
+SELECT
+    EXTRACT(YEAR FROM d.date) AS year,
+    EXTRACT(MONTH FROM d.date) AS month,
+    TO_CHAR(TO_DATE(EXTRACT(MONTH FROM d.date)::text, 'MM'), 'Month') AS month_name,
+    
+    -- Revenue
+    COALESCE(SUM(p.payment_amount), 0) AS total_revenue,
+    
+    -- Expenses
+    COALESCE(SUM(e.amount), 0) AS total_expenses,
+    
+    -- Net Profit/Loss
+    (COALESCE(SUM(p.payment_amount), 0) - COALESCE(SUM(e.amount), 0)) AS net_profit
+FROM
+    (
+        -- Generate a date series for all months
+        SELECT DISTINCT
+            DATE_TRUNC('month', dd)::date AS date
+        FROM
+            generate_series(
+                (SELECT MIN(LEAST(membership_start_date, payment_date)) FROM memberships mb 
+                 LEFT JOIN payments p ON mb.id = p.membership_id),
+                CURRENT_DATE,
+                '1 month'::interval
+            ) AS dd
+    ) d
+LEFT JOIN
+    payments p ON 
+        EXTRACT(YEAR FROM p.payment_date) = EXTRACT(YEAR FROM d.date) AND
+        EXTRACT(MONTH FROM p.payment_date) = EXTRACT(MONTH FROM d.date)
+LEFT JOIN
+    expenses e ON 
+        EXTRACT(YEAR FROM e.expense_date) = EXTRACT(YEAR FROM d.date) AND
+        EXTRACT(MONTH FROM e.expense_date) = EXTRACT(MONTH FROM d.date)
+GROUP BY
+    EXTRACT(YEAR FROM d.date),
+    EXTRACT(MONTH FROM d.date)
+ORDER BY
+    year DESC, month DESC;
+
+-- Create function to calculate revenue forecasts
+CREATE OR REPLACE FUNCTION calculate_revenue_forecast(months_ahead INTEGER DEFAULT 12)
+RETURNS TABLE (
+    forecast_month DATE,
+    forecasted_revenue NUMERIC(10,2),
+    forecasted_new_members INTEGER,
+    forecasted_renewals INTEGER
+) AS $$
+DECLARE
+    avg_monthly_revenue NUMERIC(10,2);
+    avg_monthly_growth NUMERIC(5,2);
+    avg_new_members_per_month INTEGER;
+    avg_renewals_per_month INTEGER;
+BEGIN
+    -- Calculate average monthly metrics from the past 6 months
+    SELECT 
+        AVG(monthly_revenue),
+        COALESCE(AVG(NULLIF(growth_rate, 0)), 1.05), -- Default 5% growth if can't calculate
+        AVG(new_members),
+        AVG(renewals)
+    INTO
+        avg_monthly_revenue,
+        avg_monthly_growth,
+        avg_new_members_per_month,
+        avg_renewals_per_month
+    FROM (
+        SELECT
+            DATE_TRUNC('month', payment_date) AS month,
+            SUM(payment_amount) AS monthly_revenue,
+            COUNT(DISTINCT CASE WHEN mb.membership_start_date = payment_date THEN mb.member_id ELSE NULL END) AS new_members,
+            COUNT(DISTINCT CASE WHEN mb.membership_start_date < payment_date THEN mb.member_id ELSE NULL END) AS renewals,
+            CASE
+                WHEN LAG(SUM(payment_amount)) OVER (ORDER BY DATE_TRUNC('month', payment_date)) > 0 THEN
+                    SUM(payment_amount) / LAG(SUM(payment_amount)) OVER (ORDER BY DATE_TRUNC('month', payment_date))
+                ELSE NULL
+            END AS growth_rate
+        FROM
+            payments p
+        JOIN
+            memberships mb ON p.membership_id = mb.id
+        WHERE
+            payment_date >= (CURRENT_DATE - INTERVAL '6 months')
+        GROUP BY
+            DATE_TRUNC('month', payment_date)
+        ORDER BY
+            month
+    ) AS monthly_stats;
+
+    -- Generate the forecast
+    FOR i IN 1..months_ahead LOOP
+        forecast_month := DATE_TRUNC('month', CURRENT_DATE + (i * INTERVAL '1 month'))::DATE;
+        forecasted_revenue := ROUND((avg_monthly_revenue * POWER(avg_monthly_growth, i))::NUMERIC, 2);
+        forecasted_new_members := ROUND((avg_new_members_per_month * POWER(avg_monthly_growth, i))::NUMERIC);  
+        forecasted_renewals := ROUND((avg_renewals_per_month * POWER(avg_monthly_growth, i))::NUMERIC);
+        RETURN NEXT;
+    END LOOP;
+    
+    RETURN;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Dashboard query example for overall revenue insights
+-- This can be used to build a dashboard in your application
+/*
+SELECT
+    -- Current month revenue
+    (SELECT SUM(payment_amount) FROM payments 
+     WHERE EXTRACT(MONTH FROM payment_date) = EXTRACT(MONTH FROM CURRENT_DATE)
+     AND EXTRACT(YEAR FROM payment_date) = EXTRACT(YEAR FROM CURRENT_DATE)) AS current_month_revenue,
+     
+    -- Previous month revenue
+    (SELECT SUM(payment_amount) FROM payments 
+     WHERE EXTRACT(MONTH FROM payment_date) = EXTRACT(MONTH FROM CURRENT_DATE - INTERVAL '1 month')
+     AND EXTRACT(YEAR FROM payment_date) = EXTRACT(YEAR FROM CURRENT_DATE - INTERVAL '1 month')) AS previous_month_revenue,
+     
+    -- Active members count
+    (SELECT COUNT(*) FROM memberships WHERE membership_end_date >= CURRENT_DATE) AS active_members,
+    
+    -- Overdue payments amount
+    (SELECT SUM(amount_due) FROM pending_payments_view WHERE is_overdue = TRUE) AS overdue_amount,
+    
+    -- Top performing plan
+    (SELECT plan_name FROM monthly_recurring_revenue_view ORDER BY monthly_recurring_revenue DESC LIMIT 1) AS top_plan;
+*/
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+
+-- FUNCTION: Renew a membership
+CREATE OR REPLACE FUNCTION renew_membership(
+    p_member_id INTEGER,
+    p_plan_id INTEGER,
+    p_payment_amount NUMERIC(10,2),
+    p_payment_method VARCHAR(50),
+    p_payment_screenshot_url TEXT DEFAULT NULL,
+    p_notes TEXT DEFAULT NULL
+)
+RETURNS INTEGER AS $$
+DECLARE
+    new_membership_id INTEGER;
+    new_start_date DATE;
+BEGIN
+    -- Determine the new start date
+    -- If member has an existing membership that hasn't expired yet, start from the end date
+    -- Otherwise, start from today
+    SELECT 
+        CASE
+            WHEN MAX(membership_end_date) >= CURRENT_DATE THEN MAX(membership_end_date) + 1
+            ELSE CURRENT_DATE
+        END INTO new_start_date
+    FROM memberships
+    WHERE member_id = p_member_id;
+
+    -- Create new membership record
+    INSERT INTO memberships (
+        member_id,
+        plan_id,
+        membership_start_date,
+        notes
+    ) VALUES (
+        p_member_id,
+        p_plan_id,
+        new_start_date,
+        p_notes
+    )
+    RETURNING id INTO new_membership_id;
+    
+    -- The end_date will be automatically calculated by the trigger we already have
+    
+    -- Record payment for the new membership
+    INSERT INTO payments (
+        membership_id,
+        payment_amount,
+        payment_date,
+        payment_method,
+        payment_screenshot_url,
+        notes
+    ) VALUES (
+        new_membership_id,
+        p_payment_amount,
+        CURRENT_DATE,
+        p_payment_method,
+        p_payment_screenshot_url,
+        p_notes
+    );
+    
+    RETURN new_membership_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Example usage of renew_membership function:
+-- SELECT renew_membership(
+--     1,                      -- member_id
+--     2,                      -- plan_id (Quarterly)
+--     1500.00,                -- payment_amount
+--     'UPI',                  -- payment_method
+--     'screenshots/payment1.jpg', -- payment_screenshot_url
+--     'Renewal for Q2 2025'   -- notes
+-- );
+
+-- FUNCTION: Add a payment to an existing membership
+CREATE OR REPLACE FUNCTION add_payment(
+    p_membership_id INTEGER,
+    p_payment_amount NUMERIC(10,2),
+    p_payment_method VARCHAR(50),
+    p_payment_screenshot_url TEXT DEFAULT NULL,
+    p_notes TEXT DEFAULT NULL
+)
+RETURNS INTEGER AS $$
+DECLARE
+    payment_id INTEGER;
+    current_total NUMERIC(10,2);
+    plan_price NUMERIC(10,2);
+BEGIN
+    -- Get the current total payments and plan price
+    SELECT 
+        COALESCE(SUM(p.payment_amount), 0),
+        mp.price INTO current_total, plan_price
+    FROM 
+        memberships m
+    JOIN 
+        membership_plans mp ON m.plan_id = mp.id
+    LEFT JOIN 
+        payments p ON m.id = p.membership_id
+    WHERE 
+        m.id = p_membership_id
+    GROUP BY 
+        mp.price;
+    
+    -- Check if payment would exceed the plan price
+    IF (current_total + p_payment_amount > plan_price) THEN
+        RAISE EXCEPTION 'Payment of % would exceed the total plan price of %. Current total paid is %.', 
+            p_payment_amount, plan_price, current_total;
+    END IF;
+    
+    -- Record the payment
+    INSERT INTO payments (
+        membership_id,
+        payment_amount,
+        payment_date,
+        payment_method,
+        payment_screenshot_url,
+        notes
+    ) VALUES (
+        p_membership_id,
+        p_payment_amount,
+        CURRENT_DATE,
+        p_payment_method,
+        p_payment_screenshot_url,
+        p_notes
+    )
+    RETURNING id INTO payment_id;
+    
+    RETURN payment_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Example usage of add_payment function:
+-- SELECT add_payment(
+--     5,                      -- membership_id 
+--     500.00,                 -- payment_amount
+--     'Cash',                 -- payment_method
+--     NULL,                   -- payment_screenshot_url
+--     'Partial payment'       -- notes
+-- );
+
+-- Query to find members with expiring memberships (for notifications)
+CREATE OR REPLACE VIEW expiring_memberships AS
+SELECT 
+    m.id AS member_id,
+    m.first_name,
+    m.last_name,
+    m.email,
+    m.phone,
+    mb.id AS membership_id,
+    mb.membership_end_date,
+    EXTRACT(DAY FROM (mb.membership_end_date - CURRENT_DATE))::INTEGER AS days_until_expiration,
+    mp.name AS current_plan
+FROM 
+    members m
+JOIN 
+    memberships mb ON m.id = mb.member_id
+JOIN 
+    membership_plans mp ON mb.plan_id = mp.id
+WHERE 
+    mb.membership_end_date >= CURRENT_DATE
+    AND mb.membership_end_date <= (CURRENT_DATE + INTERVAL '30 days')
+    AND NOT EXISTS (
+        -- Exclude members who already have a future membership
+        SELECT 1 FROM memberships future
+        WHERE future.member_id = m.id
+        AND future.membership_start_date > mb.membership_end_date
+    )
+ORDER BY 
+    days_until_expiration;
