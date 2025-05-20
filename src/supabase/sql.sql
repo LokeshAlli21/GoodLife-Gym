@@ -1,27 +1,20 @@
--- Create custom types for better data validation
-CREATE TYPE gender_type AS ENUM ('Male', 'Female', 'Other', 'Prefer not to say');
-CREATE TYPE blood_group_type AS ENUM ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-');
-CREATE TYPE payment_method_type AS ENUM ('Cash', 'Card', 'UPI', 'Bank Transfer', 'Check', 'Other');
-
 -- Create members table with improved constraints and validation
 CREATE TABLE members (
     id SERIAL PRIMARY KEY,
-    
+
     -- Personal Info
     first_name VARCHAR(50) NOT NULL,
     middle_name VARCHAR(50),
     last_name VARCHAR(50) NOT NULL,
-    gender gender_type,
-    dob DATE CHECK (dob <= CURRENT_DATE),
-    email VARCHAR(150) CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
-    phone VARCHAR(15) CHECK (phone ~ '^\+?[0-9]{10,15}$'),
+    gender VARCHAR(10),
+    dob DATE,
+    email VARCHAR(150),
+    phone VARCHAR(15),
     address TEXT,
     photo_url TEXT,
-    blood_group blood_group_type,
-    created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata'),
-    
-    -- Add constraints for better data validation
-    CONSTRAINT proper_name CHECK (first_name ~ '^[A-Za-z\s.-]+$' AND last_name ~ '^[A-Za-z\s.-]+$')
+    blood_group VARCHAR(5),
+
+    created_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')
 );
 
 -- Create health_metrics table with auto-calculated BMI and better structure
@@ -38,8 +31,6 @@ CREATE TABLE health_metrics (
     -- Auto-calculated BMI based on height and weight
     -- Formula: weight(kg) / (height(m))²
     -- We convert feet & inches to meters first
-    CONSTRAINT valid_height_weight CHECK ((height_feet IS NULL AND height_inches IS NULL) OR 
-                                         (height_feet IS NOT NULL AND weight_kg IS NOT NULL))
 );
 
 -- Create membership plans table to normalize data
@@ -48,7 +39,6 @@ CREATE TABLE membership_plans (
     name VARCHAR(50) NOT NULL UNIQUE,
     duration_days INTEGER NOT NULL CHECK (duration_days > 0),
     price NUMERIC(10,2) NOT NULL CHECK (price >= 0),
-    description TEXT,
     active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')
 );
@@ -73,7 +63,7 @@ CREATE TABLE payments (
     membership_id INTEGER NOT NULL REFERENCES memberships(id) ON DELETE CASCADE,
     payment_amount NUMERIC(10,2) NOT NULL CHECK (payment_amount >= 0),
     payment_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    payment_method payment_method_type NOT NULL,
+    payment_method VARCHAR(50),
     payment_screenshot_url TEXT,
     notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')
@@ -195,44 +185,7 @@ FOR EACH ROW
 EXECUTE FUNCTION init_health_metrics();
 
 -- Seed the membership plans table with some common plans
-INSERT INTO membership_plans (name, duration_days, price, description) VALUES
-('Monthly', 30, 1000.00, 'Basic monthly gym membership'),
-('Quarterly', 90, 2700.00, '3-month gym membership with 10% discount'),
-('Half-yearly', 180, 5000.00, '6-month gym membership with 15% discount'),
-('Annual', 365, 9000.00, '12-month gym membership with 25% discount');
-
--- Function to migrate data from old schema to new schema (if needed)
-CREATE OR REPLACE FUNCTION migrate_old_data()
-RETURNS VOID AS $$
-DECLARE
-    old_member RECORD;
-    new_plan_id INTEGER;
-BEGIN
-    -- Only run this if data exists in the old schema
-    -- This assumes the old tables still exist during migration
-    
-    /*
-    -- Example migration code (commented out as it depends on old tables existing)
-    FOR old_member IN SELECT * FROM old_members LOOP
-        -- Insert into new members table
-        INSERT INTO members (
-            first_name, last_name, gender, dob, email, phone, address, photo_url, blood_group
-        ) VALUES (
-            old_member.first_name, 
-            old_member.last_name,
-            old_member.gender::gender_type,
-            old_member.dob,
-            old_member.email,
-            old_member.phone,
-            old_member.address,
-            old_member.photo_url,
-            old_member.blood_group::blood_group_type
-        ) RETURNING id INTO new_member_id;
-        
-        -- Continue with other tables...
-    END LOOP;
-    */
-    
-    RAISE NOTICE 'Migration function created but not executed. Uncomment code to run migration.';
-END;
-$$ LANGUAGE plpgsql;
+INSERT INTO membership_plans (name, duration_days, price) VALUES
+('Monthly', 30, 600.00),
+('Quarterly', 90, 1500.00),
+('Annual', 365, 4500.00);
