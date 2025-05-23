@@ -91,9 +91,14 @@ async createHealthMetrics(member_id, {
   height_inches,
   weight_kg,
   bicps_size_inches,
-  bmi,
   notes
 }) {
+
+  if(!member_id){
+    console.log('id: ',member_id);
+    
+  }
+  console.log('id: ',member_id);
   try {
     const healthData = {
       member_id: Number(member_id),
@@ -101,7 +106,6 @@ async createHealthMetrics(member_id, {
       height_inches: Number(height_inches),
       weight_kg: parseFloat(weight_kg),
       bicps_size_inches: parseFloat(bicps_size_inches),
-      bmi: parseFloat(bmi),
       notes: notes || null
     };
 

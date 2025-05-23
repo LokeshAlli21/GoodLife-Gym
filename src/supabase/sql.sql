@@ -20,7 +20,7 @@ CREATE TABLE members (
 -- Create health_metrics table with auto-calculated BMI and better structure
 CREATE TABLE health_metrics (
     id SERIAL PRIMARY KEY,
-    member_id INTEGER REFERENCES members(id) ON DELETE CASCADE,
+    member_id INTEGER REFERENCES members(id) ON DELETE CASCADE UNIQUE,
     height_feet INTEGER CHECK (height_feet BETWEEN 1 AND 10),
     height_inches INTEGER CHECK (height_inches BETWEEN 0 AND 11),
     weight_kg NUMERIC(5,2) CHECK (weight_kg > 0),
