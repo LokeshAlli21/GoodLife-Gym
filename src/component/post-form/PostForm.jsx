@@ -12,7 +12,7 @@ const TABS = [
 ]
 
 function PostForm() {
-  const [memberId, setMemberId] = useState(1)
+  const [memberId, setMemberId] = useState(null)
   const [activeTab, setActiveTab] = useState('basic')
   const [loading, setLoading] = useState(false)
 
@@ -123,7 +123,7 @@ function PostForm() {
       <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden backdrop-blur-sm">
         {/* Tab Navigation */}
 <div className="bg-gradient-to-r from-gray-50 rounded-2xl to-gray-100 border-b border-gray-200 shadow-sm w-full mx-auto">
-  <div className="flex justify-center  sm:px-6 p-3 gap-4 sm:gap-3 w-full mx-auto">
+  <div className="flex justify-center  sm:px-6 p-3 gap-4 sm:gap-2 w-full mx-auto">
     {TABS.map((tab) => {
       const isDisabled = (tab.id === 'health' || tab.id === 'membership') && !memberId;
       const isActive = activeTab === tab.id;
@@ -135,7 +135,7 @@ function PostForm() {
   disabled={isDisabled}
   className={`
     flex items-center justify-center gap-2
-    px-5 sm:px-6 py-3 flex-1 rounded-xl
+    px-1 sm:px-6 py-3 flex-1 rounded-xl
     text-sm font-semibold transition-all duration-300 whitespace-nowrap hover:shadow-lg
     ${
       isActive
