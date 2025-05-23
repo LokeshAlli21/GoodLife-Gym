@@ -134,7 +134,7 @@ function PostForm() {
   onClick={() => setActiveTab(tab.id)}
   disabled={isDisabled}
   className={`
-    flex-shrink-0 flex items-center justify-center gap-2
+    flex items-center justify-center gap-2
     px-5 sm:px-6 py-3 flex-1 rounded-xl
     text-sm font-semibold transition-all duration-300 whitespace-nowrap hover:shadow-lg
     ${
