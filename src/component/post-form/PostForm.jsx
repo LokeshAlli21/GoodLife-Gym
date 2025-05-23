@@ -6,9 +6,9 @@ import MembershipAndPayments from './MembershipAndPayments'
 import userService from '../../supabase/conf'
 
 const TABS = [
-  { id: 'basic', label: 'Basic' },
-  { id: 'health', label: 'Health' },
-  { id: 'membership', label: 'Payment' },
+  { id: 'basic', label: 'Basic Details', icon: '👤', step: 1 },
+  { id: 'health', label: 'Health Metrics', icon: '💪', step: 2 },
+  { id: 'membership', label: 'Membership', icon: '💳', step: 3 },
 ]
 
 function PostForm() {
@@ -68,45 +68,125 @@ function PostForm() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh] bg-white rounded-xl mx-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-3"></div>
-          <p className="text-gray-600">Processing...</p>
+      <div className="max-w-4xl mx-auto mt-2 px-3">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 min-h-[60vh] flex items-center justify-center">
+          <div className="text-center">
+            <div className="relative">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-orange-500 absolute top-0 left-1/2 transform -translate-x-1/2"></div>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Processing your information</h3>
+            <p className="text-gray-600">Please wait while we save your details...</p>
+            <div className="flex justify-center mt-4">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     )
   }
   
   return (
-    <div className="max-w-4xl mx-auto mt-4 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-      {/* Mobile-Optimized Tab Navigation */}
-      <div className="flex bg-gray-50 border-b border-gray-200">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 px-2 py-3 text-sm font-medium transition-all duration-200 ${
-              activeTab === tab.id
-                ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white'
-                : 'text-gray-600 hover:text-black hover:bg-gray-100'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+    <div className="max-w-4xl mx-auto mt-2 px-3 sm:px-4">
+      {/* Progress Indicator */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          {TABS.map((tab, index) => (
+            <div key={tab.id} className="flex items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                activeTab === tab.id 
+                  ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg' 
+                  : TABS.findIndex(t => t.id === activeTab) > index
+                    ? 'bg-green-500 text-white'
+                    : 'bg-gray-200 text-gray-500'
+              }`}>
+                {TABS.findIndex(t => t.id === activeTab) > index ? '✓' : tab.step}
+              </div>
+              {index < TABS.length - 1 && (
+                <div className={`w-8 sm:w-16 h-1 mx-2 rounded transition-all duration-300 ${
+                  TABS.findIndex(t => t.id === activeTab) > index ? 'bg-green-500' : 'bg-gray-200'
+                }`} />
+              )}
+            </div>
+          ))}
+        </div>
+        <p className="text-center text-sm text-gray-600">
+          Step {TABS.find(tab => tab.id === activeTab)?.step} of {TABS.length}: {TABS.find(tab => tab.id === activeTab)?.label}
+        </p>
       </div>
 
-      {/* Tab Content */}
-      <div className="p-4 sm:p-6">
-        {activeTab === 'basic' && (
-          <BasicDetails handleSubmitBasicDetails={(data) => handleSubmit('basic', data)} />
-        )}
-        {activeTab === 'health' && (
-          <HealthMetrics handleSubmitHealthMetrics={(data) => handleSubmit('health', data)} />
-        )}
-        {activeTab === 'membership' && (
-          <MembershipAndPayments handleSubmitMembershipAndPayments={(data) => handleSubmit('membership', data)} />
-        )}
+      {/* Main Form Card */}
+      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden backdrop-blur-sm">
+        {/* Tab Navigation */}
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+          <div className="flex overflow-x-auto scrollbar-hide">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                disabled={tab.id === 'health' && !memberId}
+                className={`flex-shrink-0 flex items-center gap-2 px-4 py-4 text-sm font-medium transition-all duration-300 whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg transform scale-105'
+                    : tab.id === 'health' && !memberId
+                      ? 'text-gray-400 cursor-not-allowed opacity-50'
+                      : 'text-gray-600 hover:text-black hover:bg-white hover:shadow-md'
+                }`}
+              >
+                <span className="text-lg">{tab.icon}</span>
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Form Content Area */}
+        <div className="relative min-h-[60vh]">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500"></div>
+          </div>
+          
+          {/* Content */}
+          <div className="relative p-4 sm:p-8">
+            <div className="transition-all duration-500 ease-in-out">
+              {activeTab === 'basic' && (
+                <div className="animate-fadeIn">
+                  <div className="mb-6 text-center">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Personal Information</h2>
+                    <p className="text-gray-600">Let's start with your basic details</p>
+                  </div>
+                  <BasicDetails handleSubmitBasicDetails={(data) => handleSubmit('basic', data)} />
+                </div>
+              )}
+              
+              {activeTab === 'health' && (
+                <div className="animate-fadeIn">
+                  <div className="mb-6 text-center">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Health & Fitness Goals</h2>
+                    <p className="text-gray-600">Help us understand your fitness journey</p>
+                  </div>
+                  <HealthMetrics handleSubmitHealthMetrics={(data) => handleSubmit('health', data)} />
+                </div>
+              )}
+              
+              {activeTab === 'membership' && (
+                <div className="animate-fadeIn">
+                  <div className="mb-6 text-center">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Membership & Payment</h2>
+                    <p className="text-gray-600">Choose your plan and complete registration</p>
+                  </div>
+                  <MembershipAndPayments handleSubmitMembershipAndPayments={(data) => handleSubmit('membership', data)} />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
