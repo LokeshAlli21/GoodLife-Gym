@@ -206,11 +206,11 @@ function BasicDetails({ handleSubmitBasicDetails }) {
       {/* Camera Modal */}
 {showCamera && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-0 m-0">
-    <div className="w-screen h-screen bg-white rounded-none overflow-hidden shadow-none flex flex-col">
-      <div className="relative aspect-square flex-grow bg-black">
+    <div className="w-screen h-fit bg-white rounded-none overflow-hidden shadow-none flex flex-col">
+      <div className=" absolute aspect-square  top-0 left-0 bg-black">
         <video
           ref={videoRef}
-          className="absolute top-0 left-0 w-full h-full object-cover"
+          className=" w-full h-full object-cover"
           autoPlay
           playsInline
           muted
