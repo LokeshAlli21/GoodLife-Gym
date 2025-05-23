@@ -205,37 +205,38 @@ function BasicDetails({ handleSubmitBasicDetails }) {
 
       {/* Camera Modal */}
 {showCamera && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-    <div className="w-screen h-screen flex items-center justify-center bg-black">
-      <div className="relative aspect-square w-[min(100vw,100vh)] bg-black rounded-none">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-0 m-0">
+    <div className="w-screen h-screen bg-white rounded-none overflow-hidden shadow-none flex flex-col">
+      <div className="relative flex-grow bg-black">
         <video
           ref={videoRef}
-          className="w-full h-full object-cover"
+          className="absolute top-0 left-0 w-full h-full object-cover"
           autoPlay
           playsInline
           muted
         />
         <button
           onClick={switchCamera}
-          className="absolute top-3 right-3 bg-white bg-opacity-20 backdrop-blur-sm text-red-500 p-2 rounded-full hover:bg-opacity-30"
+          className="absolute top-4 right-4 bg-white bg-opacity-20 backdrop-blur-sm text-red-500 p-2 rounded-full hover:bg-opacity-30"
         >
           <FaSyncAlt />
         </button>
-        <div className="absolute bottom-4 left-0 right-0 px-4">
-          <div className="flex gap-3">
-            <button
-              onClick={capturePhoto}
-              className="flex-1 bg-green-500 text-white py-3 rounded-xl font-semibold hover:bg-green-600 transition-colors"
-            >
-              Capture
-            </button>
-            <button
-              onClick={closeCamera}
-              className="flex-1 bg-gray-500 text-white py-3 rounded-xl font-semibold hover:bg-gray-600 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
+      </div>
+
+      <div className="p-4 bg-white">
+        <div className="flex gap-3">
+          <button
+            onClick={capturePhoto}
+            className="flex-1 bg-green-500 text-white py-3 rounded-xl font-semibold hover:bg-green-600 transition-colors"
+          >
+            Capture
+          </button>
+          <button
+            onClick={closeCamera}
+            className="flex-1 bg-gray-500 text-white py-3 rounded-xl font-semibold hover:bg-gray-600 transition-colors"
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>
