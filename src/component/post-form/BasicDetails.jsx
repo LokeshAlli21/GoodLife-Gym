@@ -207,7 +207,7 @@ function BasicDetails({ handleSubmitBasicDetails }) {
 {showCamera && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-0 m-0">
     <div className="w-screen h-fit bg-white rounded-none overflow-hidden shadow-none flex flex-col">
-      <div className=" absolute aspect-square  top-0 left-0 bg-black">
+      <div className="relative aspect-square  top-0 left-0 bg-black">
         <video
           ref={videoRef}
           className=" w-full h-full object-cover"
