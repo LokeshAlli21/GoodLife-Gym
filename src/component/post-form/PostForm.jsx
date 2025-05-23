@@ -12,7 +12,7 @@ const TABS = [
 ]
 
 function PostForm() {
-  const [memberId, setMemberId] = useState(null)
+  const [memberId, setMemberId] = useState(1)
   const [activeTab, setActiveTab] = useState('basic')
   const [loading, setLoading] = useState(false)
 
@@ -122,28 +122,40 @@ function PostForm() {
       {/* Main Form Card */}
       <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden backdrop-blur-sm">
         {/* Tab Navigation */}
-        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-          <div className="flex overflow-x-auto scrollbar-hide">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                disabled={tab.id === 'health' && !memberId}
-                className={`flex-shrink-0 flex items-center gap-2 px-4 py-4 text-sm font-medium transition-all duration-300 whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg transform scale-105'
-                    : tab.id === 'health' && !memberId
-                      ? 'text-gray-400 cursor-not-allowed opacity-50'
-                      : 'text-gray-600 hover:text-black hover:bg-white hover:shadow-md'
-                }`}
-              >
-                <span className="text-lg">{tab.icon}</span>
-                <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+<div className="bg-gradient-to-r from-gray-50 rounded-2xl to-gray-100 border-b border-gray-200 shadow-sm w-full mx-auto">
+  <div className="flex justify-center  sm:px-6 p-3 gap-4 sm:gap-3 w-full mx-auto">
+    {TABS.map((tab) => {
+      const isDisabled = (tab.id === 'health' || tab.id === 'membership') && !memberId;
+      const isActive = activeTab === tab.id;
+
+      return (
+<button
+  key={tab.id}
+  onClick={() => setActiveTab(tab.id)}
+  disabled={isDisabled}
+  className={`
+    flex-shrink-0 flex items-center justify-center gap-2
+    px-5 sm:px-6 py-3 flex-1 rounded-xl
+    text-sm font-semibold transition-all duration-300 whitespace-nowrap hover:shadow-lg
+    ${
+      isActive
+        ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-md scale-[1.05] '
+        : isDisabled
+        ? 'text-gray-400  cursor-not-allowed opacity-60'
+        : 'text-gray-700  hover:text-black '
+    }
+  `}
+>
+  <span className="text-lg">{tab.icon}</span>
+  <span className="hidden sm:inline">{tab.label}</span>
+  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+</button>
+
+      );
+    })}
+  </div>
+</div>
+
 
         {/* Form Content Area */}
         <div className="relative min-h-[60vh]">
