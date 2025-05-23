@@ -91,7 +91,7 @@ function PostForm() {
   }
   
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto mb-10">
       {/* Progress Indicator */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
@@ -114,7 +114,7 @@ function PostForm() {
             </div>
           ))}
         </div>
-        <p className="text-center text-sm text-gray-600">
+        <p className="text-center text-sm text-white">
           Step {TABS.find(tab => tab.id === activeTab)?.step} of {TABS.length}: {TABS.find(tab => tab.id === activeTab)?.label}
         </p>
       </div>
@@ -147,10 +147,6 @@ function PostForm() {
 
         {/* Form Content Area */}
         <div className="relative min-h-[60vh]">
-          {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-5">
-            <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500"></div>
-          </div>
           
           {/* Content */}
           <div className="relative">
