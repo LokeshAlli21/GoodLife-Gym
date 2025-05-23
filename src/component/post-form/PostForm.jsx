@@ -91,7 +91,7 @@ function PostForm() {
   }
   
   return (
-    <div className="max-w-4xl mx-auto mt-2 px-3 sm:px-4">
+    <div className="max-w-4xl mx-auto">
       {/* Progress Indicator */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
@@ -153,14 +153,10 @@ function PostForm() {
           </div>
           
           {/* Content */}
-          <div className="relative p-4 sm:p-8">
+          <div className="relative">
             <div className="transition-all duration-500 ease-in-out">
               {activeTab === 'basic' && (
                 <div className="animate-fadeIn">
-                  <div className="mb-6 text-center">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Personal Information</h2>
-                    <p className="text-gray-600">Let's start with your basic details</p>
-                  </div>
                   <BasicDetails handleSubmitBasicDetails={(data) => handleSubmit('basic', data)} />
                 </div>
               )}
