@@ -206,7 +206,7 @@ function BasicDetails({ handleSubmitBasicDetails }) {
       {/* Camera Modal */}
       {showCamera && (
         <div className="fixed top-0 min-w-max min-h-screen left-0 right-0 bottom-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 overflow-auto">
-          <div className="w-full max-w-sm bg-white rounded-2xl overflow-hidden shadow-2xl">
+          <div className="w-full max-w-full bg-white rounded-2xl overflow-hidden shadow-2xl">
             <div className="relative">
               <div className="w-full aspect-square bg-black">
                 <video
