@@ -14,7 +14,7 @@ CREATE TABLE members (
     photo_url TEXT,
     blood_group VARCHAR(5),
 
-    created_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')
+    created_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kolkata')
 );
 
 -- Create health_metrics table with auto-calculated BMI and better structure
@@ -26,7 +26,7 @@ CREATE TABLE health_metrics (
     weight_kg NUMERIC(5,2) CHECK (weight_kg > 0),
     bicps_size_inches NUMERIC(5,2) CHECK (bicps_size_inches > 0),
     notes TEXT,
-    updated_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata'),
+    updated_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kolkata')
     
     -- Auto-calculated BMI based on height and weight
     -- Formula: weight(kg) / (height(m))²
@@ -40,7 +40,7 @@ CREATE TABLE membership_plans (
     duration_days INTEGER NOT NULL CHECK (duration_days > 0),
     price NUMERIC(10,2) NOT NULL CHECK (price >= 0),
     active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')
+    created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kolkata')
 );
 
 -- Create memberships table with better structure and auto-calculations
@@ -51,7 +51,7 @@ CREATE TABLE memberships (
     membership_start_date DATE NOT NULL DEFAULT CURRENT_DATE,
     membership_end_date DATE NOT NULL,
     notes TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata'),
+    created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kolkata'),
     
     -- Ensure end date is after start date
     CONSTRAINT valid_date_range CHECK (membership_end_date >= membership_start_date)
@@ -66,7 +66,7 @@ CREATE TABLE payments (
     payment_method VARCHAR(50),
     payment_screenshot_url TEXT,
     notes TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')
+    created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kolkata')
 );
 
 -- Create views for convenience and calculated fields
@@ -127,7 +127,7 @@ SELECT
         ELSE 'Expired'
     END AS membership_status,
     -- Calculate days remaining
-    GREATEST(0, EXTRACT(DAY FROM mb.membership_end_date - CURRENT_DATE)::INTEGER) AS days_remaining,
+    GREATEST(0, (mb.membership_end_date - CURRENT_DATE)) AS days_remaining,
     -- Payment summary
     COALESCE(SUM(p.payment_amount), 0) AS total_amount_paid,
     GREATEST(0, mp.price - COALESCE(SUM(p.payment_amount), 0)) AS total_amount_due,
@@ -270,13 +270,13 @@ SELECT
     -- Calculate days overdue if payment is pending
     CASE 
         WHEN (mp.price - COALESCE(SUM(p.payment_amount), 0)) > 0 THEN
-            EXTRACT(DAY FROM (CURRENT_DATE - COALESCE(MAX(p.payment_date), mb.membership_start_date)))::INTEGER
+            (CURRENT_DATE - COALESCE(MAX(p.payment_date), mb.membership_start_date))
         ELSE 0
     END AS days_since_last_payment,
     -- Flag severely overdue accounts
     CASE 
         WHEN (mp.price - COALESCE(SUM(p.payment_amount), 0)) > 0 AND
-             EXTRACT(DAY FROM (CURRENT_DATE - COALESCE(MAX(p.payment_date), mb.membership_start_date))) > 30
+             (CURRENT_DATE - COALESCE(MAX(p.payment_date), mb.membership_start_date)) > 30
         THEN TRUE
         ELSE FALSE
     END AS is_overdue
@@ -344,7 +344,7 @@ CREATE TABLE expenses (
     category VARCHAR(50) NOT NULL,
     amount NUMERIC(10,2) NOT NULL CHECK (amount > 0),
     description TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')
+    created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kolkata')
 );
 
 -- Create profit_loss_view to track net revenue
@@ -625,7 +625,7 @@ SELECT
     m.phone,
     mb.id AS membership_id,
     mb.membership_end_date,
-    EXTRACT(DAY FROM (mb.membership_end_date - CURRENT_DATE))::INTEGER AS days_until_expiration,
+    (mb.membership_end_date - CURRENT_DATE) AS days_until_expiration,
     mp.name AS current_plan
 FROM 
     members m
