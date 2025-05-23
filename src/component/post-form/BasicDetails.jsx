@@ -205,12 +205,20 @@ function BasicDetails({ handleSubmitBasicDetails }) {
 
       {/* Camera Modal */}
       {showCamera && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+        <div className="fixed top-0 min-w-max min-h-screen left-0 right-0 bottom-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 overflow-auto">
           <div className="w-full max-w-sm bg-white rounded-2xl overflow-hidden shadow-2xl">
             <div className="relative">
-              <video ref={videoRef} className="w-full h-64 object-cover bg-black" autoPlay playsInline muted />
+              <div className="w-full aspect-square bg-black">
+                <video
+                  ref={videoRef}
+                  className="w-full h-full object-cover rounded-lg"
+                  autoPlay
+                  playsInline
+                  muted
+                />
+              </div>
               <button onClick={switchCamera} 
-                className="absolute top-3 right-3 bg-white bg-opacity-20 backdrop-blur-sm text-white p-2 rounded-full hover:bg-opacity-30">
+                className="absolute top-3 right-3 bg-white bg-opacity-20 backdrop-blur-sm text-red-500 p-2 rounded-full hover:bg-opacity-30">
                 <FaSyncAlt />
               </button>
             </div>

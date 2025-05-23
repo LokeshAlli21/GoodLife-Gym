@@ -64,7 +64,7 @@ function App() {
           theme="dark"
           className="!top-16"
         />
-        <main className="flex-1 px-4 py-2 overflow-x-hidden">
+        <main className="flex-1 px-2 py-2 overflow-x-hidden">
           <Outlet />
         </main>
         <Footer />
