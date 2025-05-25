@@ -28,7 +28,7 @@ function HealthMetrics({ handleSubmitHealthMetrics }) {
       </label>
       <select
         {...register(name, { required })}
-        className="w-full p-3 bg-white border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-100 transition-all appearance-none text-gray-800"
+        className="px-4 py-3 rounded-lg bg-white text-gray-800 placeholder-gray-500 outline-none transition-all duration-200 border border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-200 w-full "
       >
         <option value="">Select {label}</option>
         {options.map((opt, i) => (
@@ -127,7 +127,7 @@ function HealthMetrics({ handleSubmitHealthMetrics }) {
           <textarea
             {...register("notes")}
             rows={4}
-            className="w-full p-3 bg-white border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-100 transition-all resize-none"
+            className="px-4 py-3 rounded-lg bg-white text-gray-800 placeholder-gray-500 outline-none transition-all duration-200 border border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-200 w-full  resize-none"
             placeholder="Any health conditions, fitness goals, or additional information..."
           />
         </div>
