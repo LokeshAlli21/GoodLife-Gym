@@ -1,15 +1,32 @@
-
 import React, { useState, useEffect } from 'react';
+import { useMembership, useFileUpload } from '../../hooks/useMembership';
 
 function MembershipAndPayments({ memberId }) {
+  // Use the custom hook for membership data
+  const {
+    memberData,
+    membershipPlans,
+    existingMemberships,
+    paymentHistory,
+    loading,
+    error,
+    setLoading,
+    success,
+    addPayment,
+    renewMembership,
+    getActiveMembership,
+    getMembershipBalance,
+    hasOverduePayments,
+    clearMessages
+  } = useMembership(memberId);
+      console.log(membershipPlans);
+        const hasDueMemberships = existingMemberships.some(m => m.total_amount_due > 0);
+
+  // File upload hook
+  const { uploadFile, uploading, progress: uploadProgress } = useFileUpload();
+
   // State for form data
-  const [memberData, setMemberData] = useState(null);
-  const [membershipPlans, setMembershipPlans] = useState([]);
-  const [activeTab, setActiveTab] = useState('add-payment');
-  const [existingMemberships, setExistingMemberships] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [activeTab, setActiveTab] = useState(hasDueMemberships? 'add-payment' : 'renew-membership');
 
   // Form states
   const [paymentForm, setPaymentForm] = useState({
@@ -27,198 +44,61 @@ function MembershipAndPayments({ memberId }) {
     screenshot: null,
     notes: ''
   });
+  console.log("existingMemberships: ",existingMemberships);
 
-  // Sample data instead of API calls
+
+  
+
+  // Update form when data loads
   useEffect(() => {
-    const loadSampleData = () => {
-      try {
-        setLoading(true);
+    if (existingMemberships.length > 0) {
+      // Find active membership or most recent one
+      const activeMembership = getActiveMembership() || existingMemberships[0];
+      
+      if (activeMembership) {
+        setPaymentForm(prev => ({
+          ...prev,
+          membershipId: activeMembership.membership_id,
+          amount: activeMembership.total_amount_due || ''
+        }));
         
-        // Sample member data
-        const sampleMemberData = {
-          id: memberId,
-          first_name: "Rahul",
-          last_name: "Sharma",
-          email: "rahul.sharma@example.com",
-          phone: "9876543210",
-          gender: "Male",
-          dob: "1990-05-15",
-          address: "123 Main St, Bangalore"
-        };
-        
-        // Sample membership plans
-        const samplePlans = [
-          { id: 1, name: "Monthly", duration_days: 30, price: "600.00", active: true },
-          { id: 2, name: "Quarterly", duration_days: 90, price: "1500.00", active: true },
-          { id: 3, name: "Annual", duration_days: 365, price: "4500.00", active: true }
-        ];
-        
-        // Sample existing memberships with payments
-        const today = new Date();
-        const twoMonthsAgo = new Date();
-        twoMonthsAgo.setMonth(today.getMonth() - 2);
-        
-        const oneMonthFromNow = new Date();
-        oneMonthFromNow.setMonth(today.getMonth() + 1);
-        
-        const sampleMemberships = [
-          {
-            id: 101,
-            member_id: memberId,
-            plan_id: 2, // Quarterly plan
-            membership_start_date: twoMonthsAgo.toISOString().split('T')[0],
-            membership_end_date: oneMonthFromNow.toISOString().split('T')[0],
-            payments: [
-              {
-                id: 1001,
-                membership_id: 101,
-                payment_amount: "1000.00",
-                payment_date: twoMonthsAgo.toISOString().split('T')[0],
-                payment_method: "UPI",
-                notes: "Initial payment"
-              }
-            ]
-          },
-          {
-            id: 100,
-            member_id: memberId,
-            plan_id: 1, // Monthly plan
-            membership_start_date: "2024-11-01",
-            membership_end_date: "2024-12-01",
-            payments: [
-              {
-                id: 1000,
-                membership_id: 100,
-                payment_amount: "600.00",
-                payment_date: "2024-11-01",
-                payment_method: "Cash",
-                notes: "Full payment"
-              }
-            ]
-          }
-        ];
-        
-        // Set states with sample data
-        setMemberData(sampleMemberData);
-        setMembershipPlans(samplePlans);
-        setExistingMemberships(sampleMemberships);
-        
-        // Pre-populate form if there are existing memberships
-        if (sampleMemberships.length > 0) {
-          // Find active membership or most recent one
-          const activeMembership = sampleMemberships.find(m => 
-            new Date(m.membership_end_date) >= new Date()
-          ) || sampleMemberships[0];
-          
-          setPaymentForm(prev => ({
-            ...prev,
-            membershipId: activeMembership.id
-          }));
-          
-          // Set default plan for renewal to the current plan
-          setRenewalForm(prev => ({
-            ...prev,
-            planId: activeMembership.plan_id
-          }));
-        }
-        
-        // If there's an active plan, update the amount
-        if (sampleMemberships.length > 0) {
-          const activeMembership = sampleMemberships.find(m => 
-            new Date(m.membership_end_date) >= new Date()
-          );
-          
-          if (activeMembership) {
-            const totalPaid = activeMembership.payments?.reduce(
-              (sum, payment) => sum + parseFloat(payment.payment_amount), 0
-            ) || 0;
-            
-            const plan = samplePlans.find(p => p.id === activeMembership.plan_id);
-            if (plan) {
-              const remainingAmount = Math.max(0, parseFloat(plan.price) - totalPaid);
-              setPaymentForm(prev => ({
-                ...prev,
-                amount: remainingAmount.toFixed(2)
-              }));
-            }
-          }
-        }
-      } catch (err) {
-        setError(err.message);
-        console.error("Error loading sample data:", err);
-      } finally {
-        setLoading(false);
+        // Set default plan for renewal
+        setRenewalForm(prev => ({
+          ...prev,
+          planId: activeMembership.plan_id || ''
+        }));
       }
-    };
-
-    loadSampleData();
-  }, [memberId]);
+    }
+  }, [existingMemberships, getActiveMembership]);
 
   // Handle payment form submission
   const handlePaymentSubmit = async (e) => {
     e.preventDefault();
     
     try {
-      setLoading(true);
-      
-      // Instead of API call, just log the data
-      console.log('Payment Form Submitted:', {
+      await addPayment({
         membershipId: paymentForm.membershipId,
-        amount: paymentForm.amount,
+        amount: parseFloat(paymentForm.amount),
         method: paymentForm.method,
-        screenshot: paymentForm.screenshot ? paymentForm.screenshot.name : null,
+        screenshot: paymentForm.screenshot,
         notes: paymentForm.notes
-      });
-      
-      // Simulate successful response
-      const simulatedResult = {
-        id: Math.floor(Math.random() * 1000) + 1000,
-        membership_id: paymentForm.membershipId,
-        payment_amount: paymentForm.amount,
-        payment_date: new Date().toISOString().split('T')[0],
-        payment_method: paymentForm.method,
-        notes: paymentForm.notes
-      };
-      
-      console.log('Payment added successfully:', simulatedResult);
-      setSuccess('Payment added successfully!');
-      
-      // Update local state to reflect the new payment
-      setExistingMemberships(prev => {
-        return prev.map(membership => {
-          if (membership.id.toString() === paymentForm.membershipId.toString()) {
-            return {
-              ...membership,
-              payments: [
-                ...(membership.payments || []),
-                simulatedResult
-              ]
-            };
-          }
-          return membership;
-        });
       });
       
       // Reset form
-      setPaymentForm({
-        membershipId: paymentForm.membershipId,
+      setPaymentForm(prev => ({
+        ...prev,
         amount: '',
-        method: 'Cash',
         screenshot: null,
         notes: ''
-      });
+      }));
       
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(null), 3000);
+      // Clear file input
+      const fileInput = document.querySelector('input[type="file"][data-form="payment"]');
+      if (fileInput) fileInput.value = '';
       
     } catch (err) {
-      setError(err.message);
-      console.error("Error adding payment:", err);
-      
-      // Clear error message after 3 seconds
-      setTimeout(() => setError(null), 3000);
-    } finally {
-      setLoading(false);
+      // Error is handled by the hook
+      console.error('Payment submission error:', err);
     }
   };
 
@@ -227,430 +107,575 @@ function MembershipAndPayments({ memberId }) {
     e.preventDefault();
     
     try {
-      setLoading(true);
-      
-      // Instead of API call, just log the data
-      console.log('Renewal Form Submitted:', {
-        memberId: memberId,
-        planId: renewalForm.planId,
-        amount: renewalForm.amount,
+      const result = await renewMembership({
+        planId: parseInt(renewalForm.planId),
+        amount: parseFloat(renewalForm.amount),
         method: renewalForm.method,
-        screenshot: renewalForm.screenshot ? renewalForm.screenshot.name : null,
+        screenshot: renewalForm.screenshot,
         notes: renewalForm.notes
       });
       
-      // Get the selected plan details
-      const selectedPlan = membershipPlans.find(p => p.id.toString() === renewalForm.planId.toString());
-      
-      // Calculate new membership dates
-      const startDate = new Date();
-      const endDate = new Date();
-      endDate.setDate(endDate.getDate() + (selectedPlan?.duration_days || 30));
-      
-      // Simulate successful response - new membership
-      const newMembershipId = Math.floor(Math.random() * 100) + 200;
-      const simulatedMembership = {
-        id: newMembershipId,
-        member_id: memberId,
-        plan_id: parseInt(renewalForm.planId),
-        membership_start_date: startDate.toISOString().split('T')[0],
-        membership_end_date: endDate.toISOString().split('T')[0],
-        payments: [
-          {
-            id: Math.floor(Math.random() * 1000) + 2000,
-            membership_id: newMembershipId,
-            payment_amount: renewalForm.amount,
-            payment_date: new Date().toISOString().split('T')[0],
-            payment_method: renewalForm.method,
-            notes: renewalForm.notes
-          }
-        ]
-      };
-      
-      console.log('Membership renewed successfully:', simulatedMembership);
-      setSuccess('Membership renewed successfully!');
-      
-      // Update local state to reflect the new membership
-      setExistingMemberships(prev => [simulatedMembership, ...prev]);
-      
       // Reset form
-      setRenewalForm({
-        planId: renewalForm.planId,
+      setRenewalForm(prev => ({
+        ...prev,
         amount: '',
-        method: 'Cash',
         screenshot: null,
         notes: ''
-      });
+      }));
       
-      // Change to payment tab if the payment was partial
-      if (selectedPlan && parseFloat(renewalForm.amount) < parseFloat(selectedPlan.price)) {
+      // Clear file input
+      const fileInput = document.querySelector('input[type="file"][data-form="renewal"]');
+      if (fileInput) fileInput.value = '';
+      
+      // Check if payment was partial and switch to payment tab
+      const selectedPlan = membershipPlans.find(p => p.id.toString() === renewalForm.planId.toString());
+      if (selectedPlan && parseFloat(renewalForm.amount) < selectedPlan.amount) {
         setActiveTab('add-payment');
-        
-        // Pre-select the new membership
-        setPaymentForm(prev => ({
-          ...prev,
-          membershipId: newMembershipId,
-          amount: (parseFloat(selectedPlan.price) - parseFloat(renewalForm.amount)).toFixed(2)
-        }));
       }
       
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(null), 3000);
-      
     } catch (err) {
-      setError(err.message);
-      console.error("Error renewing membership:", err);
-      
-      // Clear error message after 3 seconds
-      setTimeout(() => setError(null), 3000);
-    } finally {
-      setLoading(false);
+      // Error is handled by the hook
+      console.error('Renewal submission error:', err);
     }
   };
 
-  // Update renewal amount when plan changes
-  const handlePlanChange = (e) => {
-    const selectedPlanId = e.target.value;
-    const selectedPlan = membershipPlans.find(p => p.id.toString() === selectedPlanId);
-    
-    setRenewalForm(prev => ({
+  // Handle file upload for screenshots
+  const handleFileUpload = async (file, formType) => {
+    if (!file) return;
+
+    try {
+      const uploadedFile = await uploadFile(file);
+      
+      if (formType === 'payment') {
+        setPaymentForm(prev => ({
+          ...prev,
+          screenshot: uploadedFile
+        }));
+      } else if (formType === 'renewal') {
+        setRenewalForm(prev => ({
+          ...prev,
+          screenshot: uploadedFile
+        }));
+      }
+    } catch (err) {
+      console.error('File upload error:', err);
+    }
+  };
+
+  // Handle form input changes
+  const handlePaymentFormChange = (field, value) => {
+    setPaymentForm(prev => ({
       ...prev,
-      planId: selectedPlanId,
-      amount: selectedPlan ? selectedPlan.price : ''
+      [field]: value
     }));
   };
 
-  // File input handler
-  const handleFileChange = (e, formType) => {
-    const file = e.target.files[0];
-    if (formType === 'payment') {
-      setPaymentForm(prev => ({ ...prev, screenshot: file }));
-    } else {
-      setRenewalForm(prev => ({ ...prev, screenshot: file }));
+  const handleRenewalFormChange = (field, value) => {
+    setRenewalForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+
+    // Auto-populate amount when plan is selected
+    if (field === 'planId') {
+      const selectedPlan = membershipPlans.find(p => p.id.toString() === value.toString());
+      if (selectedPlan) {
+        setRenewalForm(prev => ({
+          ...prev,
+          amount: selectedPlan?.amount?.toString()
+        }));
+      }
     }
   };
 
-  if (loading && !memberData) {
-    return <div className="p-4 text-center">Loading member data...</div>;
+  // Calculate member status and balances
+  const activeMembership = getActiveMembership();
+  console.log("activeMembership: ",activeMembership);
+  
+  const memberBalance = getMembershipBalance();
+  const hasOverdue = hasOverduePayments();
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2">Loading membership data...</span>
+      </div>
+    );
   }
 
-  if (!loading && error && !memberData) {
-    return <div className="p-4 text-center text-red-500">Error: {error}</div>;
+  // Error state
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="flex items-center">
+          <svg className="w-5 h-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          </svg>
+          <span className="text-red-800">{error}</span>
+        </div>
+        <button
+          onClick={clearMessages}
+          className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+        >
+          Dismiss
+        </button>
+      </div>
+    );
   }
 
   return (
-    <div className="p-4">
-      {memberData && (
-        <div className="mb-6">
-          <h2 className="text-xl font-bold mb-2">
-            {memberData.first_name} {memberData.last_name}
-          </h2>
-          {existingMemberships.length > 0 && (
-            <div className="bg-gray-100 p-4 rounded mb-4">
-              <h3 className="font-semibold mb-2">Membership Status</h3>
-              {existingMemberships.map((membership, index) => {
-                const isActive = new Date(membership.membership_end_date) >= new Date();
-                const plan = membershipPlans.find(p => p.id === membership.plan_id);
-                const totalPaid = membership.payments?.reduce(
-                  (sum, payment) => sum + parseFloat(payment.payment_amount), 0
-                ) || 0;
-                const remainingAmount = plan ? Math.max(0, parseFloat(plan.price) - totalPaid) : 0;
-                
-                return (
-                  <div key={membership.id} className={`${index > 0 ? 'mt-4 pt-4 border-t' : ''}`}>
-                    <div className="flex justify-between">
-                      <span className="font-medium">{plan ? plan.name : 'Unknown'} Plan</span>
-                      <span className={`px-2 py-1 rounded text-sm ${isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {isActive ? 'Active' : 'Expired'}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
-                      <div>
-                        <span className="text-gray-600">Start Date:</span>{' '}
-                        {new Date(membership.membership_start_date).toLocaleDateString()}
-                      </div>
-                      <div>
-                        <span className="text-gray-600">End Date:</span>{' '}
-                        {new Date(membership.membership_end_date).toLocaleDateString()}
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Total Paid:</span>{' '}
-                        ₹{totalPaid.toFixed(2)}
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Balance:</span>{' '}
-                        ₹{remainingAmount.toFixed(2)}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+    <div className="max-w-6xl mx-auto p-6">
+      {/* Success Message */}
+      {success && (
+        <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <span className="text-green-800">{success}</span>
+          </div>
+          <button
+            onClick={clearMessages}
+            className="mt-2 text-sm text-green-600 hover:text-green-800 underline"
+          >
+            Dismiss
+          </button>
         </div>
       )}
 
-      {/* Tab Navigation */}
-      <div className="border-b mb-4">
-        <div className="flex">
-          <button
-            className={`px-4 py-2 ${activeTab === 'add-payment' ? 'border-b-2 border-blue-500 font-medium' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('add-payment')}
+{console.log("memberData: ",memberData)
+       }
+      {/* Member Info Header */}
+      {memberData &&  (
+        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">
+                {memberData.first_name} {memberData.last_name}
+              </h2>
+              <p className="text-gray-600">Member ID: {memberData.id}</p>
+              {memberData.email && (
+                <p className="text-gray-600">{memberData.email}</p>
+              )}
+              {memberData.phone && (
+                <p className="text-gray-600">{memberData.phone}</p>
+              )}
+            </div>
+            
+            <div className="text-right">
+              {activeMembership && (
+                <div className="space-y-1">
+                  <div className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
+                    activeMembership.membership_status === 'Active' 
+                      ? 'bg-green-100 text-green-800'
+                      : activeMembership.membership_status === 'Expired'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {activeMembership.membership_status}
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Expires: {new Date(activeMembership.membership_end_date).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+              
+              {memberBalance !== 0 && (
+                <div className={`mt-2 text-lg font-semibold ${
+                  memberBalance > 0 ? 'text-red-600' : 'text-green-600'
+                }`}>
+                  Balance: ₹{Math.abs(memberBalance)?.toFixed(2)} {memberBalance > 0 ? 'Due' : 'Credit'}
+                </div>
+              )}
+              
+              {hasOverdue && (
+                <div className="mt-1 text-sm text-red-600 font-medium">
+                  ⚠️ Overdue Payments
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div className="bg-white rounded-lg shadow-sm border">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8 px-6">
+            {[
+              ...(hasDueMemberships ? [{ id: 'add-payment', label: 'Add Payment', icon: '💳' }] : []),
+              { id: 'renew-membership', label: 'Renew Membership', icon: '🔄' },
+              { id: 'payment-history', label: 'Payment History', icon: '📋' }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <span>{tab.icon}</span>
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        <div className="p-6">
+          {/* Add Payment Tab */}
+          {activeTab === 'add-payment' && hasDueMemberships && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Add Payment</h3>
+              
+              {existingMemberships.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No active memberships found. Please create a membership first.</p>
+                </div>
+              ) : (
+                <form onSubmit={handlePaymentSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Membership Selection */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Membership
+                      </label>
+                      <select
+                        value={paymentForm.membershipId}
+                        onChange={(e) => handlePaymentFormChange('membershipId', e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                      >
+                        <option value="">Select Membership</option>
+                        {existingMemberships.map((membership) => {
+                          const plan = membershipPlans.find(p => p.id === membership.plan_id);
+                          return (
+                            <option key={membership.membership_id} value={membership.membership_id}>
+                              {plan?.name || 'Unknown Plan'} - 
+                              {new Date(membership.membership_start_date).toLocaleDateString()} to {new Date(membership.membership_end_date).toLocaleDateString()}
+                              {membership.total_amount_due > 0 && ` (Due: ₹${membership.total_amount_due})`}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+
+                    {/* Amount */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Amount
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={paymentForm.amount}
+                        onChange={(e) => handlePaymentFormChange('amount', e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="0.00"
+                        required
+                      />
+                    </div>
+
+                    {/* Payment Method */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Payment Method
+                      </label>
+                      <select
+                        value={paymentForm.method}
+                        onChange={(e) => handlePaymentFormChange('method', e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="Cash">Cash</option>
+                        <option value="Card">Card</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="UPI">UPI</option>
+                        <option value="Cheque">Cheque</option>
+                      </select>
+                    </div>
+
+                    {/* Screenshot Upload */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Payment Screenshot (Optional)
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        data-form="payment"
+                        onChange={(e) => handleFileUpload(e.target.files[0], 'payment')}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        disabled={uploading}
+                      />
+                      {uploading && (
+                        <div className="mt-2">
+                          <div className="bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${uploadProgress}%` }}
+                            ></div>
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">Uploading... {uploadProgress}%</p>
+                        </div>
+                      )}
+                      {paymentForm.screenshot && (
+                        <p className="text-sm text-green-600 mt-1">✓ Screenshot uploaded</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Notes */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Notes (Optional)
+                    </label>
+                    <textarea
+                      value={paymentForm.notes}
+                      onChange={(e) => handlePaymentFormChange('notes', e.target.value)}
+                      rows={3}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Add any additional notes..."
+                    />
+                  </div>
+
+                  {/* Submit Button */}
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={loading || uploading}
+                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? 'Processing...' : 'Add Payment'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          )}
+
+          {/* Renew Membership Tab */}
+{activeTab === 'renew-membership' && (
+  <div>
+    <h3 className="text-lg font-semibold mb-4">
+      {existingMemberships.length === 0 ? 'Add New Membership' : 'Renew Membership'}
+    </h3>
+
+    <form onSubmit={handleRenewalSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Plan Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Membership Plan
+          </label>
+          <select
+            value={renewalForm.planId}
+            onChange={(e) => handleRenewalFormChange('planId', e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            required
           >
-            Add Payment
-          </button>
-          <button
-            className={`px-4 py-2 ${activeTab === 'renew-membership' ? 'border-b-2 border-blue-500 font-medium' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('renew-membership')}
+            <option value="">Select Plan</option>
+            {membershipPlans.map((plan) => (
+              <option key={plan.id} value={plan.id}>
+                {plan.name} - ₹{plan.price} ({plan.duration_days} days)
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Amount */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Amount Paid
+          </label>
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={renewalForm.amount}
+            onChange={(e) => handleRenewalFormChange('amount', e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="0.00"
+            required
+          />
+        </div>
+
+        {/* Payment Method */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Payment Method
+          </label>
+          <select
+            value={renewalForm.method}
+            onChange={(e) => handleRenewalFormChange('method', e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            Renew Membership
-          </button>
+            <option value="Cash">Cash</option>
+            <option value="Card">Card</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+            <option value="UPI">UPI</option>
+            <option value="Cheque">Cheque</option>
+          </select>
+        </div>
+
+        {/* Screenshot Upload */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Payment Screenshot (Optional)
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            data-form="renewal"
+            onChange={(e) => handleFileUpload(e.target.files[0], 'renewal')}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            disabled={uploading}
+          />
+          {uploading && (
+            <div className="mt-2">
+              <div className="bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">Uploading... {uploadProgress}%</p>
+            </div>
+          )}
+          {renewalForm.screenshot && (
+            <p className="text-sm text-green-600 mt-1">✓ Screenshot uploaded</p>
+          )}
         </div>
       </div>
 
-      {/* Success/Error Messages */}
-      {success && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
-          {success}
-        </div>
-      )}
-      
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-          {error}
-        </div>
-      )}
+      {/* Notes */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Notes (Optional)
+        </label>
+        <textarea
+          value={renewalForm.notes}
+          onChange={(e) => handleRenewalFormChange('notes', e.target.value)}
+          rows={3}
+          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="Add any additional notes..."
+        />
+      </div>
 
-      {/* Add Payment Form */}
-      {activeTab === 'add-payment' && (
-        <form onSubmit={handlePaymentSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Select Membership
-            </label>
-            <select
-              className="w-full p-2 border rounded"
-              value={paymentForm.membershipId}
-              onChange={(e) => setPaymentForm({...paymentForm, membershipId: e.target.value})}
-              required
-            >
-              <option value="">Select a membership</option>
-              {existingMemberships.map(membership => {
-                const plan = membershipPlans.find(p => p.id === membership.plan_id);
-                return (
-                  <option key={membership.id} value={membership.id}>
-                    {plan?.name || 'Unknown'} - 
-                    End Date: {new Date(membership.membership_end_date).toLocaleDateString()}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Payment Amount (₹)
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              className="w-full p-2 border rounded"
-              value={paymentForm.amount}
-              onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
-              required
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Payment Method
-            </label>
-            <select
-              className="w-full p-2 border rounded"
-              value={paymentForm.method}
-              onChange={(e) => setPaymentForm({...paymentForm, method: e.target.value})}
-              required
-            >
-              <option value="Cash">Cash</option>
-              <option value="UPI">UPI</option>
-              <option value="Card">Card</option>
-              <option value="Bank Transfer">Bank Transfer</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Payment Screenshot (Optional)
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              className="w-full p-2 border rounded"
-              onChange={(e) => handleFileChange(e, 'payment')}
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Notes (Optional)
-            </label>
-            <textarea
-              className="w-full p-2 border rounded"
-              value={paymentForm.notes}
-              onChange={(e) => setPaymentForm({...paymentForm, notes: e.target.value})}
-              rows="2"
-            />
-          </div>
-          
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 disabled:bg-blue-300"
-            disabled={loading}
-          >
-            {loading ? 'Processing...' : 'Add Payment'}
-          </button>
-        </form>
-      )}
+      {/* Submit Button */}
+      <div className="flex justify-end">
+        <button
+          type="submit"
+          disabled={loading || uploading}
+          className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading
+            ? 'Processing...'
+            : existingMemberships.length === 0
+            ? 'Add Membership'
+            : 'Renew Membership'}
+        </button>
+      </div>
+    </form>
+  </div>
+)}
 
-      {/* Renew Membership Form */}
-      {activeTab === 'renew-membership' && (
-        <form onSubmit={handleRenewalSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Select Plan
-            </label>
-            <select
-              className="w-full p-2 border rounded"
-              value={renewalForm.planId}
-              onChange={handlePlanChange}
-              required
-            >
-              <option value="">Select a plan</option>
-              {membershipPlans.map(plan => (
-                <option key={plan.id} value={plan.id}>
-                  {plan.name} - ₹{plan.price} ({plan.duration_days} days)
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Initial Payment Amount (₹)
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              className="w-full p-2 border rounded"
-              value={renewalForm.amount}
-              onChange={(e) => setRenewalForm({...renewalForm, amount: e.target.value})}
-              required
-            />
-            {renewalForm.planId && renewalForm.amount && (
-              <p className="text-sm text-gray-500 mt-1">
-                {parseFloat(renewalForm.amount) < parseFloat(membershipPlans.find(p => p.id.toString() === renewalForm.planId.toString())?.price || 0) 
-                  ? `Remaining balance: ₹${(parseFloat(membershipPlans.find(p => p.id.toString() === renewalForm.planId.toString())?.price || 0) - parseFloat(renewalForm.amount)).toFixed(2)}`
-                  : 'Full payment'
-                }
-              </p>
-            )}
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Payment Method
-            </label>
-            <select
-              className="w-full p-2 border rounded"
-              value={renewalForm.method}
-              onChange={(e) => setRenewalForm({...renewalForm, method: e.target.value})}
-              required
-            >
-              <option value="Cash">Cash</option>
-              <option value="UPI">UPI</option>
-              <option value="Card">Card</option>
-              <option value="Bank Transfer">Bank Transfer</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Payment Screenshot (Optional)
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              className="w-full p-2 border rounded"
-              onChange={(e) => handleFileChange(e, 'renewal')}
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Notes (Optional)
-            </label>
-            <textarea
-              className="w-full p-2 border rounded"
-              value={renewalForm.notes}
-              onChange={(e) => setRenewalForm({...renewalForm, notes: e.target.value})}
-              rows="2"
-            />
-          </div>
-          
-          <button
-            type="submit"
-            className="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 disabled:bg-green-300"
-            disabled={loading}
-          >
-            {loading ? 'Processing...' : 'Renew Membership'}
-          </button>
-        </form>
-      )}
 
-      {/* Payment History */}
-      {existingMemberships.length > 0 && (
-        <div className="mt-8">
-          <h3 className="font-bold mb-2">Payment History</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white">
-              <thead>
-                <tr className="bg-gray-100 text-left">
-                  <th className="p-2">Date</th>
-                  <th className="p-2">Amount</th>
-                  <th className="p-2">Method</th>
-                  <th className="p-2">Membership</th>
-                  <th className="p-2">Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {existingMemberships.flatMap(membership => 
-                  (membership.payments || []).map(payment => {
-                    const plan = membershipPlans.find(p => p.id === membership.plan_id);
-                    return (
-                      <tr key={payment.id} className="border-t">
-                        <td className="p-2">{new Date(payment.payment_date).toLocaleDateString()}</td>
-                        <td className="p-2">₹{parseFloat(payment.payment_amount).toFixed(2)}</td>
-                        <td className="p-2">{payment.payment_method}</td>
-                        <td className="p-2">{plan?.name || 'Unknown'}</td>
-                        <td className="p-2">{payment.notes || '-'}</td>
+          {/* Payment History Tab */}
+          {activeTab === 'payment-history' && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Payment History</h3>
+              
+              {paymentHistory.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No payment history found.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Date
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Amount
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Method
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Membership
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Notes
+                        </th>
                       </tr>
-                    );
-                  })
-                )}
-                {existingMemberships.flatMap(m => m.payments || []).length === 0 && (
-                  <tr>
-                    <td colSpan="5" className="p-2 text-center text-gray-500">No payment records found</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">{console.log("paymentHistory: ",paymentHistory)
+                    }
+                      {paymentHistory.map((payment) => {
+                        const membership = existingMemberships.find(m => m.membership_id === payment.membership_id);
+                        const plan = membershipPlans.find(p => p.id === membership?.plan_id);
+                        
+                        return (
+                          <tr key={payment.id}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {new Date(payment.payment_date).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              ₹{payment.payment_amount?.toFixed(2)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {payment.payment_method}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {plan?.name || 'Unknown Plan'}
+                            </td>
+                            {/* TODO */}
+                            {
+                              !payment.status  ? 
+                              <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 `}>
+                                Completed
+                              </span>
+                            </td> 
+                            :
+
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                                payment.status === 'Completed'
+                                  ? 'bg-green-100 text-green-800'
+                                  : payment.status === 'Pending'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                                {payment.status}
+                              </span>
+                            </td>
+
+                            }
+                            
+                            <td className="px-6 py-4 text-sm text-gray-500">
+                              {payment.notes || '-'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

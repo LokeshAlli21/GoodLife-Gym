@@ -177,11 +177,7 @@ function PostForm() {
               
               {activeTab === 'membership' && (
                 <div className="animate-fadeIn">
-                  <div className="mb-6 text-center">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Membership & Payment</h2>
-                    <p className="text-gray-600">Choose your plan and complete registration</p>
-                  </div>
-                  <MembershipAndPayments handleSubmitMembershipAndPayments={(data) => handleSubmit('membership', data)} />
+                  <MembershipAndPayments memberId={memberId} handleSubmitMembershipAndPayments={(data) => handleSubmit('membership', data)} />
                 </div>
               )}
             </div>

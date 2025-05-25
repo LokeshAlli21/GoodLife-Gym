@@ -64,6 +64,7 @@ CREATE TABLE payments (
     payment_amount NUMERIC(10,2) NOT NULL CHECK (payment_amount >= 0),
     payment_date DATE NOT NULL DEFAULT CURRENT_DATE,
     payment_method VARCHAR(50),
+    -- status VARCHAR(20), TODO
     payment_screenshot_url TEXT,
     notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kolkata')
@@ -79,6 +80,8 @@ SELECT
     m.last_name,
     m.gender,
     m.dob,
+    m.email,
+    m.phone,
     EXTRACT(YEAR FROM AGE(CURRENT_DATE, m.dob)) AS age,
     h.height_feet,
     h.height_inches,
@@ -116,6 +119,7 @@ SELECT
     m.id AS member_id,
     m.first_name,
     m.last_name,
+    mb.plan_id,
     mp.name AS membership_plan,
     mp.duration_days,
     mp.price AS membership_price,
@@ -147,7 +151,7 @@ JOIN
 LEFT JOIN 
     payments p ON mb.id = p.membership_id
 GROUP BY 
-    mb.id, m.id, m.first_name, m.last_name, mp.name, mp.duration_days, mp.price;
+    mb.id, m.id, m.first_name, m.last_name, mb.plan_id, mp.name, mp.duration_days, mp.price;
 
 -- Function to auto-update membership end date when start date changes
 CREATE OR REPLACE FUNCTION update_membership_end_date()
