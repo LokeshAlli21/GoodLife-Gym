@@ -81,6 +81,7 @@ SELECT
     m.gender,
     m.dob,
     m.email,
+    m.photo_url,
     m.phone,
     EXTRACT(YEAR FROM AGE(CURRENT_DATE, m.dob)) AS age,
     h.height_feet,

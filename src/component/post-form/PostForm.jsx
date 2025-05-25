@@ -4,12 +4,13 @@ import BasicDetails from './BasicDetails'
 import HealthMetrics from './HealthMetrics'
 import MembershipAndPayments from './MembershipAndPayments'
 import userService from '../../supabase/conf'
+import { FaUser, FaHeartbeat, FaCreditCard } from 'react-icons/fa';
 
 const TABS = [
-  { id: 'basic', label: 'Basic Details', icon: '👤', step: 1 },
-  { id: 'health', label: 'Health Metrics', icon: '💪', step: 2 },
-  { id: 'membership', label: 'Membership', icon: '💳', step: 3 },
-]
+  { id: 'basic', label: 'Basic Details', icon: FaUser, step: 1 },
+  { id: 'health', label: 'Health Metrics', icon: FaHeartbeat, step: 2 },
+  { id: 'membership', label: 'Membership', icon: FaCreditCard, step: 3 },
+];
 
 function PostForm() {
   const [memberId, setMemberId] = useState(1)
@@ -122,35 +123,34 @@ function PostForm() {
       {/* Main Form Card */}
       <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden backdrop-blur-sm">
         {/* Tab Navigation */}
-<div className="bg-gradient-to-r from-gray-50 rounded-2xl to-gray-100 border-b border-gray-200 shadow-sm w-full mx-auto">
-  <div className="flex justify-center  sm:px-6 p-3 gap-4 sm:gap-2 w-full mx-auto">
+<div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl border-b border-gray-200 shadow-sm w-full mx-auto">
+  <div className="flex justify-center sm:px-6 p-3 gap-4 sm:gap-2 w-full mx-auto">
     {TABS.map((tab) => {
       const isDisabled = (tab.id === 'health' || tab.id === 'membership') && !memberId;
       const isActive = activeTab === tab.id;
 
       return (
-<button
-  key={tab.id}
-  onClick={() => setActiveTab(tab.id)}
-  disabled={isDisabled}
-  className={`
-    flex items-center justify-center gap-2
-    px-1 sm:px-6 py-3 flex-1 rounded-xl
-    text-sm font-semibold transition-all duration-300 whitespace-nowrap hover:shadow-lg
-    ${
-      isActive
-        ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-md scale-[1.05] '
-        : isDisabled
-        ? 'text-gray-400  cursor-not-allowed opacity-60'
-        : 'text-gray-700  hover:text-black '
-    }
-  `}
->
-  <span className="text-lg">{tab.icon}</span>
-  <span className="hidden sm:inline">{tab.label}</span>
-  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
-</button>
-
+        <button
+          key={tab.id}
+          onClick={() => setActiveTab(tab.id)}
+          disabled={isDisabled}
+          className={`
+            flex items-center justify-center gap-2
+            px-1 sm:px-6 py-3 flex-1 rounded-xl
+            text-sm font-semibold transition-all duration-300 whitespace-nowrap hover:shadow-lg
+            ${
+              isActive
+                ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-md scale-[1.05]'
+                : isDisabled
+                ? 'text-gray-400 cursor-not-allowed opacity-60'
+                : 'text-gray-700 hover:text-black'
+            }
+          `}
+        >
+          <tab.icon size={18} className="shrink-0" />
+          <span className="hidden sm:inline">{tab.label}</span>
+          <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+        </button>
       );
     })}
   </div>
