@@ -14,7 +14,7 @@ class MembershipService {
             console.error("supabase getMember error:", error);
             throw error;
         }
-console.log(data);
+// console.log(data);
 
         return data;
     }
@@ -31,7 +31,7 @@ console.log(data);
             console.error("supabase getMembershipPlans error:", error);
             throw error;
         }
-console.log(data);
+// console.log(data);
 
         return data;
     }
@@ -48,7 +48,7 @@ console.log(data);
             console.error("supabase getMemberMemberships error:", error);
             throw error;
         }
-        console.log(data);
+        // console.log(data);
 
         return data;
     }
@@ -74,7 +74,7 @@ console.log(data);
             console.error("supabase getMembershipPayments error:", error);
             throw error;
         }
-console.log(data);
+// console.log(data);
         return data;
     }
 

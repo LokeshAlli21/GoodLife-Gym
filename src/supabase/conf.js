@@ -167,7 +167,7 @@ async createHealthMetrics(member_id, {
 
     async getUser(id) {
         const { data, error } = await supabase
-            .from('users')
+            .from('members')
             .select('*')
             .eq('id', id)
             .single()
@@ -182,7 +182,7 @@ async createHealthMetrics(member_id, {
 
     async getUsers() {
         const { data, error } = await supabase
-            .from('users')
+            .from('members')
             .select('*')
 
         if (error) {

@@ -13,7 +13,7 @@ const TABS = [
 ];
 
 function PostForm() {
-  const [memberId, setMemberId] = useState(1)
+  const [memberId, setMemberId] = useState(null)
   const [activeTab, setActiveTab] = useState('basic')
   const [loading, setLoading] = useState(false)
 
