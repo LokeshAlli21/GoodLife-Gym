@@ -226,7 +226,7 @@ function MembershipAndPayments({ memberId }) {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto ">
       {/* Success Message */}
       {success && (
         <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-4">
@@ -249,7 +249,7 @@ function MembershipAndPayments({ memberId }) {
        }
       {/* Member Info Header */}
       {memberData &&  (
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm border border-orange-400 p-4 m-4">
           <div className="flex justify-between items-start">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
@@ -301,7 +301,7 @@ function MembershipAndPayments({ memberId }) {
       )}
 
       {/* Tabs */}
-      <div className="bg-white rounded-lg shadow-sm border">
+      <div className="bg-white ">
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8 px-6">
             {[
@@ -356,7 +356,7 @@ function MembershipAndPayments({ memberId }) {
                             <option key={membership.membership_id} value={membership.membership_id}>
                               {plan?.name || 'Unknown Plan'} - 
                               {new Date(membership.membership_start_date).toLocaleDateString()} to {new Date(membership.membership_end_date).toLocaleDateString()}
-                              {membership.total_amount_due > 0 && ` (Due: ₹${membership.total_amount_due})`}
+                              {membership.total_amount_due > 0 && `\n \t (Due: ₹${membership.total_amount_due})`}
                             </option>
                           );
                         })}
