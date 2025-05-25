@@ -12,7 +12,7 @@ const TABS = [
 ]
 
 function PostForm() {
-  const [memberId, setMemberId] = useState(null)
+  const [memberId, setMemberId] = useState(1)
   const [activeTab, setActiveTab] = useState('basic')
   const [loading, setLoading] = useState(false)
 
@@ -171,10 +171,6 @@ function PostForm() {
               
               {activeTab === 'health' && (
                 <div className="animate-fadeIn">
-                  <div className="mb-6 text-center">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Health & Fitness Goals</h2>
-                    <p className="text-gray-600">Help us understand your fitness journey</p>
-                  </div>
                   <HealthMetrics handleSubmitHealthMetrics={(data) => handleSubmit('health', data)} />
                 </div>
               )}
