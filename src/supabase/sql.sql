@@ -649,3 +649,193 @@ WHERE
     )
 ORDER BY 
     days_until_expiration;
+
+    -- Create comprehensive view for complete member details
+CREATE VIEW complete_member_details AS
+SELECT 
+    -- Basic Member Information
+    m.id AS member_id,
+    m.first_name,
+    m.middle_name,
+    m.last_name,
+    CONCAT(m.first_name, ' ', COALESCE(m.middle_name || ' ', ''), m.last_name) AS full_name,
+    m.gender,
+    m.dob,
+    EXTRACT(YEAR FROM AGE(CURRENT_DATE, m.dob)) AS age,
+    m.email,
+    m.phone,
+    m.address,
+    m.photo_url,
+    m.blood_group,
+    m.created_at AS member_since,
+    
+    -- Health Metrics
+    h.height_feet,
+    h.height_inches,
+    CONCAT(h.height_feet, '''', COALESCE(h.height_inches, 0), '"') AS height_display,
+    h.weight_kg,
+    h.bicps_size_inches,
+    h.notes AS health_notes,
+    h.updated_at AS health_last_updated,
+    
+    -- BMI Calculations
+    CASE 
+        WHEN h.height_feet IS NOT NULL AND h.weight_kg IS NOT NULL THEN
+            ROUND(
+                (h.weight_kg / POWER(((h.height_feet * 0.3048) + (COALESCE(h.height_inches, 0) * 0.0254)), 2))::NUMERIC, 
+                2
+            )
+        ELSE NULL
+    END AS bmi,
+    
+    CASE 
+        WHEN h.height_feet IS NOT NULL AND h.weight_kg IS NOT NULL THEN
+            CASE 
+                WHEN (h.weight_kg / POWER(((h.height_feet * 0.3048) + (COALESCE(h.height_inches, 0) * 0.0254)), 2)) < 18.5 THEN 'Underweight'
+                WHEN (h.weight_kg / POWER(((h.height_feet * 0.3048) + (COALESCE(h.height_inches, 0) * 0.0254)), 2)) BETWEEN 18.5 AND 24.9 THEN 'Normal weight'
+                WHEN (h.weight_kg / POWER(((h.height_feet * 0.3048) + (COALESCE(h.height_inches, 0) * 0.0254)), 2)) BETWEEN 25 AND 29.9 THEN 'Overweight'
+                ELSE 'Obese'
+            END
+        ELSE NULL
+    END AS bmi_category,
+    
+    -- Current Membership Information
+    current_mb.id AS current_membership_id,
+    current_mp.name AS current_plan_name,
+    current_mp.duration_days AS current_plan_duration,
+    current_mp.price AS current_plan_price,
+    current_mb.membership_start_date AS current_membership_start,
+    current_mb.membership_end_date AS current_membership_end,
+    current_mb.notes AS current_membership_notes,
+    
+    -- Membership Status
+    CASE 
+        WHEN current_mb.membership_end_date >= CURRENT_DATE THEN 'Active'
+        WHEN current_mb.membership_end_date IS NOT NULL THEN 'Expired'
+        ELSE 'No Membership'
+    END AS membership_status,
+    
+    -- Days calculation
+    CASE 
+        WHEN current_mb.membership_end_date >= CURRENT_DATE THEN 
+            (current_mb.membership_end_date - CURRENT_DATE)
+        ELSE 0
+    END AS days_remaining,
+    
+    CASE 
+        WHEN current_mb.membership_end_date < CURRENT_DATE THEN 
+            (CURRENT_DATE - current_mb.membership_end_date)
+        ELSE 0
+    END AS days_expired,
+    
+    -- Payment Summary for Current Membership
+    COALESCE(current_payments.total_paid, 0) AS current_membership_paid,
+    COALESCE(current_mp.price - current_payments.total_paid, current_mp.price, 0) AS current_membership_due,
+    current_payments.last_payment_date,
+    current_payments.last_payment_amount,
+    current_payments.last_payment_method,
+    current_payments.payment_count AS current_membership_payment_count,
+    
+    -- Payment Status
+    CASE 
+        WHEN current_mp.price IS NULL THEN 'No Membership'
+        WHEN COALESCE(current_payments.total_paid, 0) >= current_mp.price THEN 'Fully Paid'
+        WHEN COALESCE(current_payments.total_paid, 0) > 0 THEN 'Partially Paid'
+        ELSE 'Not Paid'
+    END AS payment_status,
+    
+    -- Overdue Status
+    CASE 
+        WHEN current_mp.price IS NOT NULL AND 
+             COALESCE(current_payments.total_paid, 0) < current_mp.price AND
+             (CURRENT_DATE - COALESCE(current_payments.last_payment_date, current_mb.membership_start_date)) > 30
+        THEN TRUE
+        ELSE FALSE
+    END AS is_payment_overdue,
+    
+    -- Historical Summary
+    all_memberships.total_memberships,
+    all_memberships.first_membership_date,
+    all_payments.lifetime_total_paid,
+    all_payments.lifetime_payment_count,
+    all_payments.average_payment_amount,
+    
+    -- Membership History Status
+    CASE 
+        WHEN all_memberships.total_memberships > 1 THEN 'Returning Member'
+        WHEN all_memberships.total_memberships = 1 THEN 'New Member'
+        ELSE 'Prospect'
+    END AS member_type,
+    
+    -- Next Action Recommendations
+    CASE 
+        WHEN current_mb.membership_end_date IS NULL THEN 'Enroll in membership'
+        WHEN current_mb.membership_end_date < CURRENT_DATE THEN 'Renew membership'
+        WHEN current_mb.membership_end_date <= (CURRENT_DATE + INTERVAL '7 days') THEN 'Renewal due soon'
+        WHEN COALESCE(current_payments.total_paid, 0) < current_mp.price THEN 'Payment due'
+        ELSE 'Active member'
+    END AS recommended_action,
+    
+    -- Contact Priority (for follow-ups)
+    CASE 
+        WHEN current_mb.membership_end_date < CURRENT_DATE THEN 3  -- High priority for expired
+        WHEN current_mb.membership_end_date <= (CURRENT_DATE + INTERVAL '7 days') THEN 2  -- Medium priority for expiring soon
+        WHEN COALESCE(current_payments.total_paid, 0) < current_mp.price THEN 2  -- Medium priority for payment due
+        ELSE 1  -- Low priority for active members
+    END AS contact_priority
+
+FROM 
+    members m
+    
+-- Health metrics
+LEFT JOIN 
+    health_metrics h ON m.id = h.member_id
+    
+-- Current membership (most recent active or latest membership)
+LEFT JOIN LATERAL (
+    SELECT mb.*, ROW_NUMBER() OVER (ORDER BY 
+        CASE WHEN mb.membership_end_date >= CURRENT_DATE THEN 0 ELSE 1 END,
+        mb.membership_end_date DESC
+    ) as rn
+    FROM memberships mb 
+    WHERE mb.member_id = m.id
+) ranked_mb ON ranked_mb.rn = 1
+LEFT JOIN memberships current_mb ON current_mb.id = ranked_mb.id
+LEFT JOIN membership_plans current_mp ON current_mb.plan_id = current_mp.id
+
+-- Current membership payments
+LEFT JOIN LATERAL (
+    SELECT 
+        SUM(p.payment_amount) AS total_paid,
+        COUNT(p.id) AS payment_count,
+        MAX(p.payment_date) AS last_payment_date,
+        (SELECT payment_amount FROM payments WHERE membership_id = current_mb.id ORDER BY payment_date DESC LIMIT 1) AS last_payment_amount,
+        (SELECT payment_method FROM payments WHERE membership_id = current_mb.id ORDER BY payment_date DESC LIMIT 1) AS last_payment_method
+    FROM payments p 
+    WHERE p.membership_id = current_mb.id
+) current_payments ON current_mb.id IS NOT NULL
+
+-- All memberships summary
+LEFT JOIN LATERAL (
+    SELECT 
+        COUNT(*) AS total_memberships,
+        MIN(membership_start_date) AS first_membership_date
+    FROM memberships mb 
+    WHERE mb.member_id = m.id
+) all_memberships ON TRUE
+
+-- All payments summary
+LEFT JOIN LATERAL (
+    SELECT 
+        COALESCE(SUM(p.payment_amount), 0) AS lifetime_total_paid,
+        COUNT(p.id) AS lifetime_payment_count,
+        CASE WHEN COUNT(p.id) > 0 THEN ROUND(AVG(p.payment_amount), 2) ELSE 0 END AS average_payment_amount
+    FROM payments p 
+    JOIN memberships mb ON p.membership_id = mb.id
+    WHERE mb.member_id = m.id
+) all_payments ON TRUE
+
+ORDER BY 
+    contact_priority DESC,
+    m.first_name,
+    m.last_name;

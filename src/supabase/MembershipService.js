@@ -19,6 +19,21 @@ class MembershipService {
         return data;
     }
 
+    async getCompleteMemberDetails(id) {
+        const { data, error } = await supabase
+            .from('complete_member_details')
+            .select('*')
+            .eq('member_id', id)
+            .single();
+
+        if (error) {
+            console.error("supabase getCompleteMemberDetails error:", error);
+            throw error;
+        }
+
+        return data;
+    }
+
     // Get all membership plans
     async getMembershipPlans() {
         const { data, error } = await supabase
